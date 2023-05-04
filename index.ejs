@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    connect-src 'self';
+    img-src 'self' https://i.ytimg.com;
+    font-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval';
+    style-src 'self' 'unsafe-inline';
+    media-src 'self' blob:;" />
+  <meta http-equiv="X-Content-Security-Policy" content="
+    default-src 'self';
+    connect-src 'self';
+    img-src 'self' https://i.ytimg.com;
+    font-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval';
+    style-src 'self' 'unsafe-inline';
+    media-src 'self' blob:;" />
+  <title><%- htmlWebpackPlugin.options.metadata.title %></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <base href="<%- htmlWebpackPlugin.options.metadata.baseUrl %>">
+  <!-- imported CSS are concatenated and added automatically -->
+</head>
+
+<body aurelia-app="main">
+</body>
+
+</html>

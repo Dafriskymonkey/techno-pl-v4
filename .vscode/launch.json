@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Debug Main Process",
+        "type": "node",
+        "request": "launch",
+        "cwd": "${workspaceFolder}",
+        "runtimeExecutable": "/usr/local/bin/npm",
+        "windows": {
+          "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe"
+        },
+        "args": ["run", "electron-dev"],
+        "outputCapture": "std"
+      }
+    ]
+  }
+  

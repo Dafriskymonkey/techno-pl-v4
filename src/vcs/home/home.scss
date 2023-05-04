@@ -1,0 +1,41 @@
+.main-container {
+  height: 100%;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.track-active {
+  background-color: #005DA8;
+  color: #C5FCEE;
+}
+
+.track:hover{
+  color: pink;
+}
+
+.btn:hover{
+  border: 1px yellow solid;
+}
+
+.btn-controls {
+  height: 48px;
+  width: 72px;
+  border-radius: 24px;
+  background-color: #005DA8;
+}
+
+.btn-play{
+  color: #00C9A3;
+}
+
+.btn-pause{
+  // background-color: transparent;
+  color: #FBAF4C;
+}
+
+.btn-skip{
+  background-color: transparent;
+  color: #DAF2F9;
+}

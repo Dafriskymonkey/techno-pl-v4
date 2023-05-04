@@ -1,0 +1,108 @@
+<template>
+
+  <require from="./home.scss"></require>
+  <require from="resources/formats/duration-format"></require>
+  <require from="resources/formats/moment-format"></require>
+  <require from="resources/formats/humanize-moment-format"></require>
+
+  <div class="main-container">
+    <div style="padding: 6px;">
+      <div style="display: flex; align-items: center; justify-content: space-between;">
+        <h1>Tracks (${total})</h1>
+        <div>
+          <form>
+            <select class="form-control" value.bind="playlistId">
+              <option model.bind="null">--select playlist--</option>
+              <option repeat.for="playlist of playlists" model.bind="playlist.id">${playlist.name}
+                (${playlist.tracks.length})</option>
+            </select>
+          </form>
+        </div>
+        <div>
+          <form>
+            <input class="form-control" />
+          </form>
+        </div>
+      </div>
+      <div style="height: 720px; overflow-y: scroll;">
+        <table class="os-table">
+          <tbody>
+            <tr repeat.for="t of tracks" class="track ${t.id == track.id ? 'track-active': ''}">
+              <td show.bind="playlistId">
+                ${$index + 1}
+              </td>
+              <td class="clickable" style="display: flex; justify-content: center;" dblclick.delegate="openTrackInfo(t)"
+                click.delegate="setTrack(t)">
+                <div
+                  style="background-image:url('${t.thumbnail}'); width:48px; height:48px; background-position:center; background-size: cover;">
+                </div>
+              </td>
+              <td class="clickable" dblclick.delegate="openTrackInfo(t)" click.delegate="setTrack(t)">
+                <div>${t.displayTitle}</div>
+                <div class="playlists-container ">
+                  <span repeat.for="playlist of t.playlists">${playlist} </span>
+                </div>
+              </td>
+              <td class="text-center">${t.duration | durationFormat}</td>
+              <td class="text-center">${t.uploadDate | momentFormat}</td>
+              <!-- <td class="text-center">
+                <a href target="_blank" click.delegate="openTrackInfo(t)">info</a>
+              </td> -->
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div style="position: absolute; bottom: 12px; width: 100%;">
+      <div class="text-center mt-3 mb-1">${track.displayTitle}</div>
+      <div style="display: flex; align-items: center; justify-content: space-around;">
+        <div class="mt-2 text-center"
+          style="display: flex; align-items: center; justify-content: center; column-gap: 12px;">
+          <button class="btn" click.delegate="prevPage()" show.bind="!playlistId">page--</button>
+            <span style="display: flex; align-items: center; justify-content: center; column-gap: 2px;" show.bind="!playlistId">
+              <form submit.delegate="jumpToPage()">
+                <input type="number" value.bind="page" style="width: 66px; background-color: #005DA8; color: #C5FCEE;"
+                  class="os-form-element text-center" />
+              </form>
+              <span style="font-size: large;"> / ${count}</span>
+            </span>
+            <button class="btn" click.delegate="nextPage()" show.bind="!playlistId">page++</button>
+        </div>
+        <div class="mt-1" style="display: flex; align-items: center; justify-content: center; column-gap: 12px;">
+          <button class="btn btn-controls btn-skip" click.delegate="prevTrack()">
+            <i class="fas fa-step-backward"></i>
+          </button>
+          <button class="btn btn-controls btn-skip" click.delegate="move(true)">
+            <i class="fas fa-backward"></i>
+          </button>
+          <a href click.delegate="seek(25)">25%</a>
+          <a href click.delegate="seek(40)">40%</a>
+          <span>
+            <button class="btn btn-controls btn-play" click.delegate="playPause()" if.bind="!playing">
+              <i class="fas fa-play fa-lg"></i>
+            </button>
+            <button class="btn btn-controls btn-pause" click.delegate="playPause()" if.bind="playing">
+              <i class="fas fa-pause fa-lg"></i>
+            </button>
+          </span>
+          <a href click.delegate="seek(60)">60%</a>
+          <a href click.delegate="seek(75)">75%</a>
+          <button class="btn btn-controls btn-skip" click.delegate="move(false)">
+            <i class="fas fa-forward"></i>
+          </button>
+          <button class="btn btn-controls btn-skip" click.delegate="nextTrack()">
+            <i class="fas fa-step-forward"></i>
+          </button>
+        </div>
+        <div class="text-center">
+          <audio controls id="player"></audio>
+        </div>
+      </div>
+      <div class="mt-2 text-center">
+        <a href click.delegate="jumpToTrack()" show.bind="!playlistId">jump to current track</a>
+      </div>
+    </div>
+  </div>
+
+
+</template>
