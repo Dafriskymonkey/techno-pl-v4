@@ -100,6 +100,10 @@ export class SourceCodeDisplay {
     }
   }
 
+  async openYoutube(){
+    await electronAPI.openYoutube(this.track.id);
+  }
+
   ok() {
     this.controller.ok({ track: this.track });
   }

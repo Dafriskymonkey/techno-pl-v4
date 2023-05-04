@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { Menu, app, BrowserWindow, ipcMain } = require('electron');
+const { Menu, app, BrowserWindow, ipcMain, shell } = require('electron');
 const path = require('path');
 const serve = require('electron-serve');
 const loadURL = serve({ directory: 'build' });
@@ -110,6 +110,7 @@ app.whenReady().then(async () => {
           label: 'dummy',
           async click() {
             console.info('dummy');
+            await dataManager.dummy();
           }
         }
       ]
@@ -126,6 +127,11 @@ app.whenReady().then(async () => {
 
   ipcMain.on('log', (event, message) => {
     console.info('render:log', message);
+  });
+
+  ipcMain.on('api:open-youtube', (event, trackId) => {
+    console.info('api:open-youtube', trackId);
+    shell.openExternal(`https://www.youtube.com/watch?v=${trackId}`);
   });
 
   ipcMain.handle('db:get-tracks', (event, page, size, playlistId) => {

@@ -31,6 +31,29 @@ class DataManager {
         this.db = new loki('./data/data.db', {
             adapter
         });
+
+        this.trackProperties = [
+            'id',
+            'title',
+            'thumbnail',
+            'channel_id',
+            'channel_url',
+            'duration',
+            'channel',
+            'upload_date',
+            'asr',
+            'filesize',
+            'format_id',
+            'format_note',
+            'quality',
+            'tbr',
+            'abr',
+
+            '$loki',
+            'deleted',
+            'playlists',
+            'createdDate'
+        ];
     }
 
     async importData() {
@@ -94,23 +117,24 @@ class DataManager {
     }
 
     getTracks(page, size, playlistId) {
-        let tracks = this.tracks.chain().find({ deleted: false }).simplesort('createdDate', true).data();
+        
+        let tracks = [];
 
-        let total = tracks.length;
-        const pageCount = playlistId ? 1 : size > 0 ? total / size == 0 ? 1 : (Math.ceil(total / size)) : 1;
-
+        let filter = {deleted: false};
         if (!playlistId) {
-            const startIndex = (page - 1) * size;
-            const endIndex = startIndex + size;
-            tracks = tracks.slice(startIndex, endIndex);
+            const offset = (page - 1) * size;
+            tracks = this.tracks.chain().find(filter).simplesort('createdDate', true).offset(offset).limit(size).data();
         }
         else {
             const playlist = this.playlists.findOne({ id: playlistId });
             if (playlist) {
-                tracks = tracks.filter(t => t.playlists.includes(playlist.name));
-                total = tracks.length;
+                filter.playlists = { $contains: playlist.name };
+                tracks = this.tracks.find(filter);
             }
         }
+
+        const total = this.tracks.count(filter);
+        const pageCount = playlistId ? 1 : size > 0 ? total / size == 0 ? 1 : (Math.ceil(total / size)) : 1;
 
         const result = {
             pagination: {
@@ -296,77 +320,17 @@ class DataManager {
 
 
     async dummy() {
-        // const fromDate = new Date('2023-04-27');
-        // const files = await this.getFilesByDate('/home/dafriskymonkey/Music/track-infos', fromDate);
-        // console.info('files', files);
-        // return files; //UCLXM6lFu1s7MjInzUk5bfNA
 
-        const trackIds = [];
-        return new Promise((resolve, reject) => {
-            fs.readdir('/home/dafriskymonkey/Music/track-infos', async (err, files) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                for (let index = 0; index < files.length; index++) {
-                    const file = files[index];
-                    const json = fs.readFileSync(`/home/dafriskymonkey/Music/track-infos/${file}`, 'utf-8');
-                    const info = JSON.parse(json);
-                    if (info.channel_id == 'UCLXM6lFu1s7MjInzUk5bfNA') {
-                        trackIds.push(info.id);
-                    }
-                }
-                const downloadedContent = fs.readFileSync(`/home/dafriskymonkey/Music/youtube/downloaded.txt`, 'utf-8');
-                let lines = downloadedContent.split('\n');
-                console.info('lines', lines.length);
-                lines = lines.filter(line => {
-                    const trackId = line.split(" ").pop();
-                    return !trackIds.includes(trackId);
-                });
-                console.info('trackIds[0]', trackIds[0]);
-                console.info('trackIds', trackIds.length);
-                console.info('lines', lines.length);
-                const tracks = this.tracks.find({ id: { $in: trackIds } });
-                console.info('tracks', tracks.length);
-                if (this.tracks.length) {
-                    this.tracks.findAndRemove({ id: { $in: trackIds } });
-                    await this.save();
-                }
-                fs.writeFile(`/home/dafriskymonkey/Music/youtube/downloaded.txt`, lines.join('\n'), { encoding: 'utf8' }, (err) => {
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
-                    console.info('The file has been saved!');
-                });
+        const pageSize = 10;
+        const pageNumber = 1;
+        const offset = (pageNumber - 1) * pageSize;
+        let tracks = this.tracks.chain().find({ deleted: false, playlists: {$contains: '47'} }).simplesort('createdDate', true).offset(offset).limit(pageSize).data();
+        console.info('tracks', tracks.length);   
+        const count = this.tracks.count({ 'deleted': false, playlists: {$contains: '47'} });
+        console.info('count', count);    
 
-                for (let index = 0; index < trackIds.length; index++) {
-                    const trackId = trackIds[index];
-                    const infoPath = `/home/dafriskymonkey/Music/track-infos/${trackId}.info.json`;
-                    if (fs.existsSync(infoPath)) {
-                        fs.unlink(infoPath, (err) => {
-                            if (err) throw err;
-                            console.info(`deleted ${infoPath}`);
-                        });
-                    }
-                    else {
-                        console.info(`${infoPath} doenst exist`);
-                    }
-                    const mp3Path = `/home/dafriskymonkey/Music/youtube/${trackId}.mp3`;
-                    if (fs.existsSync(mp3Path)) {
-                        fs.unlink(mp3Path, (err) => {
-                            if (err) throw err;
-                            console.info(`deleted ${mp3Path}`);
-                        });
-                    }
-                    else {
-                        console.info(`${mp3Path} doenst exist`);
-                    }
-                }
-                console.info('finished dummy');
-                resolve(files);
-            });
-        })
+        
+
     }
 
 

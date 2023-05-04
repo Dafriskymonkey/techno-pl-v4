@@ -6,7 +6,7 @@
         "type": "node",
         "request": "launch",
         "cwd": "${workspaceFolder}",
-        "runtimeExecutable": "/usr/local/bin/npm",
+        "runtimeExecutable": "/usr/bin/npm",
         "windows": {
           "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe"
         },

@@ -1,0 +1,16 @@
+id
+title
+thumbnail
+channel_id
+channel_url
+duration
+channel
+upload_date
+asr
+filesize
+format_id
+format_note
+quality
+tbr
+abr
+
