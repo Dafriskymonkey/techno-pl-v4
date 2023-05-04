@@ -106,13 +106,12 @@ app.whenReady().then(async () => {
             console.info('done importing downloaded tracks');
           }
         },
-        // {
-        //   label: 'dummy',
-        //   async click() {
-        //     console.info('dummy');
-        //     await dataManager.dummy();
-        //   }
-        // }
+        {
+          label: 'dummy',
+          async click() {
+            console.info('dummy');
+          }
+        }
       ]
     }
   ]
