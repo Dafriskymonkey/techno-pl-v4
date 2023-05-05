@@ -110,6 +110,17 @@ export class Home {
     this.playlistsChanged = this._eventAggregator.subscribe('playlists-changed', playlists => {
       this.playlists = playlists;
     });
+
+    this.getTracksEvent = this._eventAggregator.subscribe('main:get-tracks', async value => {
+      this.page = 1;
+      this.size = 10;
+      this.count = 0;
+      this.total = 0;
+      this.playlistId = null;
+      await this.getTracks();
+      if (this.tracks.length) this.track = this.tracks[0];
+    });
+
     this.getPlaylists();
   }
 
@@ -117,6 +128,7 @@ export class Home {
     document.removeEventListener('keydown', this.keydown);
     this.trackPlaylistsChanged.dispose();
     this.playlistsChanged.dispose();
+    this.getTracksEvent.dispose();
   }
 
   getPlaylists() {

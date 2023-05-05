@@ -74,7 +74,7 @@ class DataManager {
         return data;
     }
 
-    init() {
+    init(mainWindow) {
         return new Promise((resolve, reject) => {
             this.db.loadDatabase({}, (error) => {
                 if (error) {
@@ -85,6 +85,7 @@ class DataManager {
                     this.createCollection('tracks');
                     this.createCollection('playlists');
                     console.info('loaded database');
+                    this.mainWindow = mainWindow;
                     resolve();
                 }
             });
@@ -320,6 +321,7 @@ class DataManager {
         }
 
         console.info(`saved ${trackIds.length} new tracks`);
+        this.sendGetTracks();
     }
 
     onlyRequiredProperties(og) {
@@ -328,6 +330,10 @@ class DataManager {
             if (!this.trackProperties.find(_ => _ == prop)) delete result[prop];
         }
         return result;
+    }
+
+    sendGetTracks(){
+        this.mainWindow.webContents.send('main:get-tracks', 666);
     }
 
     async dummy() {

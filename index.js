@@ -110,20 +110,18 @@ app.whenReady().then(async () => {
           label: 'dummy',
           async click() {
             console.info('dummy');
-            await dataManager.dummy();
+            dataManager.sendGetTracks();
           }
         }
       ]
     }
-  ]
+  ];
 
   // Create the menu
-  const menu = Menu.buildFromTemplate(template)
+  const menu = Menu.buildFromTemplate(template);
 
   // Set the menu
-  Menu.setApplicationMenu(menu)
-
-  await dataManager.init();
+  Menu.setApplicationMenu(menu);
 
   ipcMain.on('log', (event, message) => {
     console.info('render:log', message);
@@ -177,6 +175,8 @@ app.whenReady().then(async () => {
   });
 
   createWindow();
+
+  await dataManager.init(mainWindow);
 });
 
 // Quit when all windows are closed.

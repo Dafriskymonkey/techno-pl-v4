@@ -2,7 +2,8 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
     log: (message) => ipcRenderer.send('log', message),
-    openYoutube: (trackId) => ipcRenderer.send('api:open-youtube', trackId)
+    openYoutube: (trackId) => ipcRenderer.send('api:open-youtube', trackId),
+    getTracks: (callback) => ipcRenderer.on('main:get-tracks', callback),
 });
 
 contextBridge.exposeInMainWorld('db', {
