@@ -260,7 +260,7 @@ export class Home {
   }
 
   async deleteTrack(track) {
-    let test = confirm(`do you really want to delete "${track.displayTitle}" ??`);
+    let test = confirm(`do you really want to delete "${track.title}" ??`);
     if (!test) return;
 
     await this._tracksManager.deleteTrack(track.id);

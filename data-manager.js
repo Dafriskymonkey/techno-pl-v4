@@ -50,10 +50,13 @@ class DataManager {
             'abr',
 
             '$loki',
+            'meta',
             'deleted',
             'playlists',
-            'createdDate'
+            'createdDate',
+            'uploadDate'
         ];
+
     }
 
     async importData() {
@@ -117,10 +120,10 @@ class DataManager {
     }
 
     getTracks(page, size, playlistId) {
-        
+
         let tracks = [];
 
-        let filter = {deleted: false};
+        let filter = { deleted: false };
         if (!playlistId) {
             const offset = (page - 1) * size;
             tracks = this.tracks.chain().find(filter).simplesort('createdDate', true).offset(offset).limit(size).data();
@@ -281,11 +284,7 @@ class DataManager {
         const trackIds = [];
         for (const file of jsonFiles) {
             const json = await fs.promises.readFile(`/home/dafriskymonkey/Music/youtube/${file}`);
-            const info = Object.assign(JSON.parse(json), {
-                deleted: false,
-                playlists: [],
-                createdDate: moment.utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
-            });
+            let info = Object.assign(JSON.parse(json));
             if (!info.duration || !info.upload_date) {
                 console.info(`${file} is not an info file`);
                 continue;
@@ -295,14 +294,19 @@ class DataManager {
                 continue;
             }
 
+            info = this.onlyRequiredProperties(Object.assign(info, {
+                deleted: false,
+                playlists: [],
+                createdDate: moment.utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]'),
+                uploadDate: new Date(
+                    info.upload_date.substr(0, 4),
+                    info.upload_date.substr(4, 2) - 1,
+                    info.upload_date.substr(6, 2)
+                )
+            }));
+
             console.info(`saving track ${info.id}`);
             trackIds.push(info.id);
-            info.uploadDate = new Date(
-                info.upload_date.substr(0, 4),
-                info.upload_date.substr(4, 2) - 1,
-                info.upload_date.substr(6, 2)
-            );
-            info.displayTitle = info.artist && info.name ? `${info.artist} - ${info.name}` : info.title;
             try {
                 const track = await this.tracks.findOne({ id: info.id });
                 if (!track) this.tracks.insert(info);
@@ -318,19 +322,26 @@ class DataManager {
         console.info(`saved ${trackIds.length} new tracks`);
     }
 
+    onlyRequiredProperties(og) {
+        const result = Object.assign({}, og);
+        for (let prop in result) {
+            if (!this.trackProperties.find(_ => _ == prop)) delete result[prop];
+        }
+        return result;
+    }
 
     async dummy() {
 
-        const pageSize = 10;
-        const pageNumber = 1;
-        const offset = (pageNumber - 1) * pageSize;
-        let tracks = this.tracks.chain().find({ deleted: false, playlists: {$contains: '47'} }).simplesort('createdDate', true).offset(offset).limit(pageSize).data();
-        console.info('tracks', tracks.length);   
-        const count = this.tracks.count({ 'deleted': false, playlists: {$contains: '47'} });
-        console.info('count', count);    
+        const tracks = this.tracks.find();
+        for (let index = 0; index < tracks.length; index++) {
+            const track = tracks[index];
+            for (let prop in track) {
+                if (!this.trackProperties.find(_ => _ == prop)) delete track[prop];
+            }
+            this.tracks.update(track);
+        }
 
-        
-
+        await this.save();
     }
 
 

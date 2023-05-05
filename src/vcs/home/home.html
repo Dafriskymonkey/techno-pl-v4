@@ -38,7 +38,7 @@
                 </div>
               </td>
               <td class="clickable" dblclick.delegate="openTrackInfo(t)" click.delegate="setTrack(t)">
-                <div>${t.displayTitle}</div>
+                <div>${t.title}</div>
                 <div class="playlists-container ">
                   <span repeat.for="playlist of t.playlists">${playlist} </span>
                 </div>
@@ -54,7 +54,7 @@
       </div>
     </div>
     <div style="position: absolute; bottom: 12px; width: 100%;">
-      <div class="text-center mt-3 mb-1">${track.displayTitle}</div>
+      <div class="text-center mt-3 mb-1">${track.title}</div>
       <div style="display: flex; align-items: center; justify-content: space-around;">
         <div class="mt-2 text-center"
           style="display: flex; align-items: center; justify-content: center; column-gap: 12px;">

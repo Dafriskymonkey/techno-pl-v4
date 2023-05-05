@@ -82,7 +82,7 @@ export class SourceCodeDisplay {
   }
 
   removeFromPlaylist(playlist) {
-    const test = confirm(`do you really want to remove "${this.track.displayTitle}" from playlist "${playlist.name}"`);
+    const test = confirm(`do you really want to remove "${this.track.title}" from playlist "${playlist.name}"`);
     if (test) {
       this.loading = true;
       return this._tracksManager.savePlaylist(this.track.id, playlist.name, true)
