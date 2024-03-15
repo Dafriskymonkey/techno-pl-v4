@@ -1,0 +1,39 @@
+<template>
+  <ux-dialog>
+    <ux-dialog-body>
+      <div class="text-right">
+        <!-- <i class="fas fa-times" style="cursor: pointer;" click.delegate="controller.cancel()"></i>
+        <hr /> -->
+      </div>
+      <div>
+        <div style="display: flex;align-items: center; justify-content: space-between;">
+          <h3>missing tracks</h3>
+          <span>
+            <a style="color: #00E4BE;" href click.delegate="getMissingTracks()">refresh</a>
+          </span>
+        </div>
+        <div>
+          there is <strong style="font-size: large;">${missingTrackFiles.length - index}</strong> missing tracks from your files
+          folder, would you like to download them??
+        </div>
+        <pre id="console" show.bind="outputs.length" style="color: greenyellow; width: 720px; max-height: 320px; overflow: auto;">
+          <div repeat.for="output of outputs">${output}</div>
+        </pre>
+    </ux-dialog-body>
+    <ux-dialog-footer>
+      <div style="margin-top: 24px; display: flex; column-gap: 6px; align-items: center; justify-content: flex-end;">
+        <button class="btn btn--os-light" disabled.bind="loading" click.delegate="controller.cancel()">
+          <i class="fas fa-times"></i> cancel
+        </button>
+        <button class="btn btn--os-light" disabled.bind="!loading || stopping" click.delegate="stop()">
+          <i class="far fa-stop-circle"></i>
+          <span if.bind="!stopping"> stop</span>
+          <span if.bind="stopping"> stopping ..</span>
+        </button>
+        <button class="btn" click.delegate="ok()" disabled.bind="loading">
+          <i class="fas fa-download"></i> download
+        </button>
+      </div>
+    </ux-dialog-footer>
+  </ux-dialog>
+</template>

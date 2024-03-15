@@ -8,11 +8,10 @@
         "cwd": "${workspaceFolder}",
         "runtimeExecutable": "/usr/bin/npm",
         "windows": {
-          "runtimeExecutable": "C:\\Program Files\\nodejs\\node.exe"
+          "runtimeExecutable": "npm"
         },
         "args": ["run", "electron-dev"],
         "outputCapture": "std"
       }
     ]
   }
-  

@@ -1,0 +1,13 @@
+ + check data integrity at launch (missing mp3, data ..)
+ + remove from playlists after deleting the track
+ + sorting a playlist
+
+ //rruthology UCw59OmZvwnXB5ivCbBNDbmw
+
+//yt-dlp --match-filter "duration < 900" --write-info-json --dateafter 20210101 -f bestaudio --audio-quality 0 --no-part --audio-format mp3 --download-archive downloaded.txt -ciwx -o "%(id)s.%(ext)s" -v https://www.youtube.com/channel/UC6qQOTx9LuKMC5p2dbjmSRg
+//yt-dlp --match-filter "duration < 900" --write-info-json --dateafter 20210101 -f bestaudio --audio-quality 0 --no-part --audio-format mp3 --download-archive downloaded.txt -ciwx -o "%(id)s.%(ext)s" -v https://www.youtube.com/@HATE
+
+//yt-dlp --write-info-json -f bestaudio --audio-quality 0 --no-part --audio-format mp3 --download-archive downloaded.txt -ciwx -o "%(id)s.%(ext)s" -v zFmnC7Epea4
+
+//paginated
+//yt-dlp --match-filter "duration < 900" --write-info-json --dateafter 20220101 -f bestaudio --audio-quality 0 --no-part --audio-format mp3 --download-archive downloaded.txt -ciwx -o "%(id)s.%(ext)s" --playlist-start 1 --playlist-end 10 -v https://www.youtube.com/channel/UC6qQOTx9LuKMC5p2dbjmSRg

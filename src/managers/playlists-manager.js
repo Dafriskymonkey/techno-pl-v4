@@ -22,4 +22,8 @@ export class PlaylistsManager {
     return this.playlists;
   }
 
+  async downloadPlaylist(playlistId){
+    return await db.downloadPlaylist(playlistId);
+  }
+
 }

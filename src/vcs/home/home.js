@@ -24,12 +24,24 @@ export class Home {
 
   async attached() {
     await this.getTracks();
-    this.track = this.tracks[0];
+    const trackIdSetting = await db.getTrackIdSetting();
+    console.info('trackIdSetting', trackIdSetting);
+    if(trackIdSetting){
+      const track = await db.getTrackObject(trackIdSetting);
+      console.info('track', track);
+      if(track){
+        this.track = track;
+        this.jumpToTrack();
+      }
+    }
+    else{
+      if(this.tracks.length) this.track = this.tracks[0];      
+    }
 
     this.player = document.getElementById('player');
 
     this.player.onloadeddata = () => {
-      // this.player.currentTime = this.player.duration * 4 / 10;
+      this.player.currentTime = this.player.duration * 4 / 10;
       this.player.play();
     };
 
@@ -109,6 +121,7 @@ export class Home {
 
     this.playlistsChanged = this._eventAggregator.subscribe('playlists-changed', playlists => {
       this.playlists = playlists;
+      console.info('this.playlists', this.playlists);
     });
 
     this.getTracksEvent = this._eventAggregator.subscribe('main:get-tracks', async value => {
@@ -160,13 +173,28 @@ export class Home {
       });
   }
 
-  async playlistIdChanged(){
+  async playlistIdChanged() {
     this.page = 1;
     this.size = 10;
     this.count = 0;
     this.total = 0;
     await this.getTracks();
-    if(this.tracks.length)this.track = this.tracks[0];
+
+    if(this.playlistId){
+      if(this.tracks.length) this.track = this.tracks[0];   
+      return;
+    }
+    const trackIdSetting = await db.getTrackIdSetting();
+    if(trackIdSetting){
+      const track = await db.getTrackObject(trackIdSetting);
+      if(track){
+        this.track = track;
+        this.jumpToTrack();
+      }
+    }
+    else{
+      if(this.tracks.length) this.track = this.tracks[0];      
+    }
   }
 
   prevPage() {
@@ -206,6 +234,9 @@ export class Home {
       const audioURL = URL.createObjectURL(audioBlob);
       this.player.src = audioURL;
       this.player.load();
+      if(!this.playlistId) {
+        await db.setTrackIdSetting(this.track.id);
+      }
     }
     else {
       this.player.src = '';
@@ -291,6 +322,68 @@ export class Home {
       document.addEventListener('keydown', this.keydown);
       if (response.wasCancelled) return;
       this.track.playlists = response.output.track.playlists;
+    });
+  }
+
+  async downloadPlaylist() {
+    if (!this.playlistId) {
+      console.warn('no playlist selected');
+      return;
+    }
+
+    const playlist = this.playlists.find(_ => _.id == this.playlistId);
+    if (!playlist) {
+      console.warn('can not find the specified playlist');
+      return;
+    }
+
+    // const path = await this._playlistsManager.downloadPlaylist(this.playlistId);
+
+    // alert(`playlist is ready in folder "${path}"`);
+
+    document.removeEventListener('keydown', this.keydown);
+    this._dialogService.open({
+      viewModel: PLATFORM.moduleName('vcs/home/download-playlist'), model: {
+        playlist: playlist
+      }, lock: false
+    }).whenClosed(response => {
+      document.addEventListener('keydown', this.keydown);
+      if (response.wasCancelled) return;
+    });
+  }
+
+  playSound() {
+    // create an AudioContext instance
+    const audioCtx = new AudioContext();
+
+    // create an oscillator node
+    const oscillator = audioCtx.createOscillator();
+
+    // set the oscillator type to a sine wave
+    oscillator.type = 'sine';
+
+    // set the frequency to 440 Hz (A4 note)
+    oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+
+    // connect the oscillator to the audio context's destination (speakers)
+    oscillator.connect(audioCtx.destination);
+
+    // start the oscillator
+    oscillator.start();
+
+    setTimeout(() => {
+      oscillator.stop();
+    }, 4000);
+
+  }
+
+  openPLaylistSelector() {
+    document.removeEventListener('keydown', this.keydown);
+    this._dialogService.open({
+      viewModel: PLATFORM.moduleName('vcs/home/playlists-selector'), model: {}, lock: false
+    }).whenClosed(response => {
+      document.addEventListener('keydown', this.keydown);
+      if (response.wasCancelled) return;
     });
   }
 

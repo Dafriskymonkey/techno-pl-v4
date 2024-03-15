@@ -4,12 +4,13 @@
   <require from="resources/formats/duration-format"></require>
   <require from="resources/formats/moment-format"></require>
   <require from="resources/formats/humanize-moment-format"></require>
+  <require from="./track-info"></require>
 
   <div class="main-container">
     <div style="padding: 6px;">
       <div style="display: flex; align-items: center; justify-content: space-between;">
-        <h1>Tracks (${total})</h1>
-        <div>
+        <h1 click.delegate="playSound()">Tracks (${total})</h1>
+        <div style="display: flex; justify-content: center; align-items: center; column-gap: 3px;">
           <form>
             <select class="form-control" value.bind="playlistId">
               <option model.bind="null">--select playlist--</option>
@@ -17,6 +18,9 @@
                 (${playlist.tracks.length})</option>
             </select>
           </form>
+          <div>
+            <a href click.delegate="openPLaylistSelector()">playlists</a>
+          </div>
         </div>
         <div>
           <form>
@@ -24,33 +28,42 @@
           </form>
         </div>
       </div>
-      <div style="height: 720px; overflow-y: scroll;">
-        <table class="os-table">
-          <tbody>
-            <tr repeat.for="t of tracks" class="track ${t.id == track.id ? 'track-active': ''}">
-              <td show.bind="playlistId">
-                ${$index + 1}
-              </td>
-              <td class="clickable" style="display: flex; justify-content: center;" dblclick.delegate="openTrackInfo(t)"
-                click.delegate="setTrack(t)">
-                <div
-                  style="background-image:url('${t.thumbnail}'); width:48px; height:48px; background-position:center; background-size: cover;">
-                </div>
-              </td>
-              <td class="clickable" dblclick.delegate="openTrackInfo(t)" click.delegate="setTrack(t)">
-                <div>${t.title}</div>
-                <div class="playlists-container ">
-                  <span repeat.for="playlist of t.playlists">${playlist} </span>
-                </div>
-              </td>
-              <td class="text-center">${t.duration | durationFormat}</td>
-              <td class="text-center">${t.uploadDate | momentFormat}</td>
-              <!-- <td class="text-center">
-                <a href target="_blank" click.delegate="openTrackInfo(t)">info</a>
-              </td> -->
-            </tr>
-          </tbody>
-        </table>
+      <div>
+        <div class="os-grid">
+          <div class="sm-6">
+            <div style="height: 640px; overflow-y: scroll;">
+              <table>
+                <tbody>
+                  <tr repeat.for="t of tracks" class="track ${t.id == track.id ? 'track-active': ''}">
+                    <td show.bind="playlistId">
+                      ${$index + 1}
+                    </td>
+                    <td class="clickable" style="display: flex; justify-content: center;"
+                      dblclick.delegate="openTrackInfo(t)" click.delegate="setTrack(t)">
+                      <div
+                        style="background-image:url('${t.thumbnail}'); width:48px; height:48px; background-position:center; background-size: cover;">
+                      </div>
+                    </td>
+                    <td class="clickable" dblclick.delegate="openTrackInfo(t)" click.delegate="setTrack(t)">
+                      <div>${t.title}</div>
+                      <div class="playlists-container ">
+                        <span repeat.for="playlist of t.playlists">${playlist} </span>
+                      </div>
+                    </td>
+                    <td class="text-center">${t.duration | durationFormat}</td>
+                    <td class="text-center">${t.uploadDate | momentFormat}</td>
+                    <!-- <td class="text-center">
+                      <a href target="_blank" click.delegate="openTrackInfo(t)">info</a>
+                    </td> -->
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="sm-6">
+            <track-info track.bind="track"></track-info>
+          </div>
+        </div>
       </div>
     </div>
     <div style="position: absolute; bottom: 12px; width: 100%;">
@@ -59,14 +72,15 @@
         <div class="mt-2 text-center"
           style="display: flex; align-items: center; justify-content: center; column-gap: 12px;">
           <button class="btn" click.delegate="prevPage()" show.bind="!playlistId">page--</button>
-            <span style="display: flex; align-items: center; justify-content: center; column-gap: 2px;" show.bind="!playlistId">
-              <form submit.delegate="jumpToPage()">
-                <input type="number" value.bind="page" style="width: 66px; background-color: #005DA8; color: #C5FCEE;"
-                  class="os-form-element text-center" />
-              </form>
-              <span style="font-size: large;"> / ${count}</span>
-            </span>
-            <button class="btn" click.delegate="nextPage()" show.bind="!playlistId">page++</button>
+          <span style="display: flex; align-items: center; justify-content: center; column-gap: 2px;"
+            show.bind="!playlistId">
+            <form submit.delegate="jumpToPage()">
+              <input type="number" value.bind="page" style="width: 66px; background-color: #005DA8; color: #C5FCEE;"
+                class="os-form-element text-center" />
+            </form>
+            <span style="font-size: large;"> / ${count}</span>
+          </span>
+          <button class="btn" click.delegate="nextPage()" show.bind="!playlistId">page++</button>
         </div>
         <div class="mt-1" style="display: flex; align-items: center; justify-content: center; column-gap: 12px;">
           <button class="btn btn-controls btn-skip" click.delegate="prevTrack()">
@@ -99,10 +113,10 @@
         </div>
       </div>
       <div class="mt-2 text-center">
+        <a href click.delegate="downloadPlaylist()" show.bind="playlistId">download playlist</a>
         <a href click.delegate="jumpToTrack()" show.bind="!playlistId">jump to current track</a>
       </div>
     </div>
   </div>
-
 
 </template>

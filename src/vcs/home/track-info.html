@@ -1,48 +1,31 @@
 <template>
-  <ux-dialog>
-    <ux-dialog-body>
-      <div class="text-right">
-        <i class="fas fa-times" style="cursor: pointer;" click.delegate="controller.cancel()"></i>
-        <hr />
-      </div>
-      <div>
-        <div style="display: flex;align-items: center; justify-content: space-between;">
-          <h3>${track.title}</h3>
-          <a href click.delegate="openYoutube()" style="color: red;">
-            <i class="fab fa-youtube fa-lg"></i><span style="font-size: x-large; font-weight: bold;">youtube</span>
-          </a>
-        </div>
-        <hr />
-        <div class="playlists-container" style="min-height: 48px;">
-          <span repeat.for="playlist of track._playlists" style="cursor: pointer;"
-            dblclick.delegate="removeFromPlaylist(playlist)"><span
-              style="font-size: 36px; font-weight: bold;">${playlist.name}</span>(${playlist.count}) </span>
-          <span if.bind="!track._playlists.length">no playlists yet ..</span>
-        </div>
-        <hr />
-        <div style="width: 100%; display: flex; justify-content: center;">
-          <form submit.delegate="addToPlaylist()" class="mt-1">
-            <input id="playlist-input" class="form-control" style="width: 240px" value.bind="playListName"
-              placeholder="playlist" autocomplete="off" />
-          </form>
-        </div>
-        <hr />
-        <div
-          style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 12px; row-gap: 6px;">
-          <a href style="color: lightgray;" repeat.for="playlist of playlists | filter: playListName"
-            click.delegate="addPlaylist(playlist.name)"><span
-              style="font-size: larger;">${playlist.name}</span>(${playlist.tracks.length})</a>
-        </div>
-      </div>
-    </ux-dialog-body>
-
-    <!-- <ux-dialog-footer>
-      <button class="btn btn--os-light" click.delegate="controller.cancel()">
-        <i class="fas fa-times"></i> cancel
-      </button>
-      <button class="btn" click.delegate="ok()" disabled.bind="loading">
-        <i class="fas fa-check"></i> ok
-      </button>
-    </ux-dialog-footer> -->
-  </ux-dialog>
+  <div>
+    <div style="display: flex;align-items: center; justify-content: space-between;">
+      <h4>${track.title}</h4>
+      <a href click.delegate="openYoutube()" style="color: red;">
+        <i class="fab fa-youtube fa-lg"></i><span style="font-size: large; font-weight: bold;">youtube</span>
+      </a>
+    </div>
+    <hr />
+    <div class="playlists-container" style="min-height: 48px;">
+      <span repeat.for="playlist of track._playlists" style="cursor: pointer;"
+        dblclick.delegate="removeFromPlaylist(playlist)"><span
+          style="font-size: 24px; font-weight: bold;">${playlist.name}</span>(${playlist.count}) </span>
+      <span if.bind="!track._playlists.length">no playlists yet ..</span>
+    </div>
+    <hr />
+    <div style="width: 100%; display: flex; justify-content: center;">
+      <form submit.delegate="addToPlaylist()" class="mt-1">
+        <input id="playlist-input" class="form-control" style="width: 240px" value.bind="playListName"
+          placeholder="playlist" autocomplete="off" />
+      </form>
+    </div>
+    <hr />
+    <div
+      style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 12px; row-gap: 6px;">
+      <a href style="color: lightgray;" repeat.for="playlist of playlists | filter: playListName"
+        click.delegate="addPlaylist(playlist.name)"><span
+          style="font-size: larger;">${playlist.name}</span>(${playlist.tracks.length})</a>
+    </div>
+  </div>
 </template>

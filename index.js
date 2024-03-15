@@ -18,8 +18,9 @@ function isDev() {
 function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 1080,
-    height: 720,
+    width: 1366,
+    height: 768,
+    // fullscreen: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -35,10 +36,12 @@ function createWindow() {
     show: false,
   });
 
+  // mainWindow.maximize();
+
   // This block of code is intended for development purpose only.
   // Delete this entire block of code when you are ready to package the application.
   if (isDev()) {
-    mainWindow.loadURL('http://localhost:8080/');
+    mainWindow.loadURL('http://localhost:9090/');
   } else {
     loadURL(mainWindow);
   }
@@ -90,14 +93,6 @@ app.whenReady().then(async () => {
             mainWindow.webContents.openDevTools()
           }
         },
-        // {
-        //   label: 'import data from json',
-        //   async click() {
-        //     console.info('import data from json');
-        //     await dataManager.importData();
-        //     console.info('done importing json data');
-        //   }
-        // },
         {
           label: 'import downloaded tracks',
           async click() {
@@ -109,8 +104,7 @@ app.whenReady().then(async () => {
         {
           label: 'dummy',
           async click() {
-            console.info('dummy');
-            dataManager.sendGetTracks();
+            config.dummy();
           }
         }
       ]
@@ -174,9 +168,53 @@ app.whenReady().then(async () => {
     return result;
   });
 
+  ipcMain.handle('db:download-playlist', async (event, playlistId) => {
+    console.info('db:download-playlist', playlistId);
+    const path = await dataManager.downloadPlaylist(playlistId);
+    return path;
+  });
+
+  ipcMain.handle('db:init', async () => {
+    console.info('db:init');
+    const result = await dataManager.init();
+    return result;
+  });
+
+  ipcMain.handle('db:get-missing-tracks', async () => {
+    console.info('db:get-missing-tracks');
+    const result = await dataManager.getMissingFiles();
+    return result;
+  });
+
+  ipcMain.handle('db:update-yt-dlp', async (event) => {
+    console.info('db:update-yt-dlp');
+    await dataManager.updateYtDlp();
+  });
+
+  ipcMain.handle('db:download-track', async (event, trackId) => {
+    console.info('db:download-track');
+    await dataManager.downloadTrack(trackId);
+  });
+
+  ipcMain.handle('db:get-trackId-setting', async () => {
+    console.info('db:get-trackId-setting');
+    const trackId = await dataManager.getTrackIdSetting();
+    return trackId;
+  });
+
+  ipcMain.handle('db:set-trackId-setting', async (event, trackId) => {
+    console.info('db:set-trackId-setting');
+    return await dataManager.setTrackIdSetting(trackId);
+  });
+
+  ipcMain.handle('db:get-track-object', async (event, trackId) => {
+    console.info('db:get-track-object');
+    return await dataManager.getTrackObject(trackId);
+  });
+
   createWindow();
 
-  await dataManager.init(mainWindow);
+  dataManager.setMainWindow(mainWindow);
 });
 
 // Quit when all windows are closed.

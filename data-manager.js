@@ -3,6 +3,19 @@ const LokiFsAdapter = require('lokijs/src/loki-fs-structured-adapter.js');
 const fs = require('fs');
 const path = require('path');
 const moment = require('moment');
+const { v4: uuidv4 } = require('uuid');
+const { spawn } = require('child_process');
+
+const logMessageTypes = Object.freeze({
+    success: 'success',
+    info: 'info',
+    warning: 'warning',
+    error: 'error',
+    started: 'started',
+    finished: 'finished'
+});
+
+// const { parseFile, orderTags } = require('music-metadata');
 
 String.prototype.toAlphaNumeric = function (separator) {
     return this.replace(/[^a-zA-Z0-9]/g, separator || '');
@@ -25,12 +38,17 @@ Array.prototype.uniqueByProperty = function (propertyName) {
     return uniqueArray;
 };
 
+String.prototype.replaceNonAsciiWithUnderscore = function () {
+    return this.replace(/[^\x00-\x7F]+/g, '_');
+};
+
+String.prototype.replaceNonAlphaNumeric = function (replacementChar) {
+    const regex = /[^a-zA-Z0-9_\-\s]/g;
+    return this.replace(regex, replacementChar);
+};
+
 class DataManager {
     constructor() {
-        const adapter = new LokiFsAdapter();
-        this.db = new loki('./data/data.db', {
-            adapter
-        });
 
         this.trackProperties = [
             'id',
@@ -59,23 +77,58 @@ class DataManager {
 
     }
 
-    async importData() {
-        const json = fs.readFileSync('./data/data.json', 'utf-8');
-        const data = JSON.parse(json);
-
-        const tracks = data.tracks;
-        const playlists = data.playlists;
-
-        this.tracks.insert(tracks);
-        this.playlists.insert(playlists);
-
-        await this.save();
-
-        return data;
+    setMainWindow(mainWindow) {
+        this.mainWindow = mainWindow;
     }
 
-    init(mainWindow) {
-        return new Promise((resolve, reject) => {
+    async init() {
+
+        this.appFolder = path.join(process.env.USERPROFILE, 'Music', 'Beathub');
+
+        this.dataFolder = path.join(this.appFolder, 'Data');
+        this.settingsFile = path.join(this.dataFolder, 'settings.json');
+
+        this.filesFolder = path.join(this.appFolder, 'Files');
+
+        this.dbPath = path.join(this.dataFolder, 'data.db');
+
+        console.info('this.appFolder', this.appFolder);
+        console.info('this.dataFolder', this.dataFolder);
+        console.info('this.filesFolder', this.filesFolder);
+        console.info('this.dbPath', this.dbPath);
+
+        this.settingsJson = {};
+
+        if (!fs.existsSync(this.appFolder)) {
+            await fs.promises.mkdir(this.appFolder);
+        }
+
+        if (!fs.existsSync(this.dataFolder)) {
+            await fs.promises.mkdir(this.dataFolder);
+        }
+
+        if(!fs.existsSync(this.settingsFile)){
+            await fs.promises.writeFile(this.settingsFile, '');
+        }
+        const settingsContent = await fs.promises.readFile(this.settingsFile);
+        try {
+            this.settingsJson = JSON.parse(settingsContent);
+        } catch {}
+        if(!('trackId' in this.settingsJson)){
+            this.settingsJson.trackId = null;
+            await fs.promises.writeFile(this.settingsFile, JSON.stringify(this.settingsJson, null, 3));
+        }
+
+        if (!fs.existsSync(this.filesFolder)) {
+            await fs.promises.mkdir(this.filesFolder);
+        }
+
+        const adapter = new LokiFsAdapter();
+        this.db = new loki(this.dbPath, {
+            adapter
+        });
+
+        await new Promise((resolve, reject) => {
             this.db.loadDatabase({}, (error) => {
                 if (error) {
                     console.error('can not load database');
@@ -85,11 +138,38 @@ class DataManager {
                     this.createCollection('tracks');
                     this.createCollection('playlists');
                     console.info('loaded database');
-                    this.mainWindow = mainWindow;
                     resolve();
                 }
             });
         });
+
+        return this.getMissingFiles();
+    }
+
+    getTrackIdSetting(){
+        return this.settingsJson.trackId;
+    }
+
+    async setTrackIdSetting(trackId){
+        this.settingsJson.trackId = trackId;
+        await fs.promises.writeFile(this.settingsFile, JSON.stringify(this.settingsJson, null, 3));
+        return trackId;
+    }
+
+    getMissingFiles(){
+        let filter = { deleted: false };
+        const tracks = this.tracks.chain().find(filter).simplesort('createdDate', true).data();
+
+        const missingTrackFiles = [];
+        for (let index = 0; index < tracks.length; index++) {
+            const track = tracks[index];
+            const trackPath = path.join(this.filesFolder, `${track.id}.mp3`);
+            if (!fs.existsSync(trackPath)) {
+                missingTrackFiles.push(track.id);
+            }
+        }
+
+        return missingTrackFiles;
     }
 
     createCollection(collectionName) {
@@ -131,9 +211,18 @@ class DataManager {
         }
         else {
             const playlist = this.playlists.findOne({ id: playlistId });
+            console.info('playlistName', playlist.name);
             if (playlist) {
                 filter.playlists = { $contains: playlist.name };
                 tracks = this.tracks.find(filter);
+
+                let tmp = [];
+                for (let index = 0; index < playlist.tracks.length; index++) {
+                    const track = tracks.find(_ => _.id == playlist.tracks[index].id);
+                    if (!track) continue;
+                    tmp.push(track);
+                }
+                tracks = tmp;
             }
         }
 
@@ -153,14 +242,25 @@ class DataManager {
         });
     }
 
+    getTrackPath(trackId){
+        const trackPath = path.join(this.filesFolder, `${trackId}.mp3`);
+        return trackPath;
+    }
+
     getTrack(trackId) {
-        const track = this.tracks.find({ id: trackId });
+        const track = this.tracks.findOne({ id: trackId });
         if (!track) {
             console.warn(`track '${trackId}' not found`);
             return;
         }
-        const audioData = fs.readFileSync(`/home/dafriskymonkey/Music/youtube/${trackId}.mp3`)
+        const trackPath = this.getTrackPath(trackId);
+        const audioData = fs.readFileSync(trackPath);
         return audioData;
+    }
+
+    getTrackObject(trackId){
+        const track = this.tracks.findOne({ id: trackId });
+        return track;
     }
 
     getPlaylists() {
@@ -195,7 +295,10 @@ class DataManager {
             await this.tracks.update(track);
             let playlist = await this.playlists.findOne({ name: playlistName });
             if (!playlist) {
+                const createdDate = moment().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]');
                 playlist = {
+                    id: uuidv4(),
+                    createdDate,
                     name: playlistName, tracks: [{
                         id: track.id,
                         tags: []
@@ -237,13 +340,24 @@ class DataManager {
             return null;
         }
 
+        if(track.playlists && track.playlists.length){
+            const playlists = await this.playlists.find({ 'name': { '$in': track.playlists } });
+            for (let index = 0; index < playlists.length; index++) {
+                const playlist = playlists[index];
+                const trackIndex = playlist.tracks.map(_ => _.id).indexOf(track.id);
+                if(trackIndex < 0) continue;
+                playlist.tracks.splice(trackIndex, 1);
+                await this.playlists.update(playlist);
+            }
+        }
+
         track.deleted = true;
         await this.tracks.update(track);
         await this.save();
 
-        const file = `/home/dafriskymonkey/Music/youtube/${trackId}.mp3`;
-        if (fs.existsSync(file)) {
-            fs.unlinkSync(file);
+        const trackPath = this.getTrackPath(trackId);
+        if (fs.existsSync(trackPath)) {
+            fs.unlinkSync(trackPath);
         }
 
         return track;
@@ -332,22 +446,123 @@ class DataManager {
         return result;
     }
 
-    sendGetTracks(){
+    sendGetTracks() {
         this.mainWindow.webContents.send('main:get-tracks', 666);
     }
 
-    async dummy() {
+    logMessage(target, type, text) {
+        this.mainWindow.webContents.send('api:message', {
+            target: target,
+            text: text,
+            type: type
+        });
+    }
 
-        const tracks = this.tracks.find();
-        for (let index = 0; index < tracks.length; index++) {
-            const track = tracks[index];
-            for (let prop in track) {
-                if (!this.trackProperties.find(_ => _ == prop)) delete track[prop];
-            }
-            this.tracks.update(track);
+    async downloadPlaylist(playlistId) {
+
+        this.logMessage('download-playlist', logMessageTypes.started);
+
+        const playlist = await this.playlists.findOne({ id: playlistId });
+        if (!playlist || !playlist.tracks || !playlist.tracks.length) {
+            console.warn(`playlist ${playlist.name} seems to be empty`);
+            this.logMessage('download-playlist', logMessageTypes.warning, `playlist "${playlist.name}" seems to be empty`);
+            this.logMessage('download-playlist', logMessageTypes.finished);
+            return;
         }
 
-        await this.save();
+        const playlistFolderPath = `/home/dafriskymonkey/Music/Techno-PL/${playlist.name}`;
+
+        await fs.promises.rmdir(playlistFolderPath, { recursive: true });
+        await fs.promises.mkdir(playlistFolderPath);
+
+        const m3uPath = `${playlistFolderPath}/${playlist.name}.m3u8`;
+        let m3uContent = '#EXTM3U\n';
+
+        for (let index = 0; index < playlist.tracks.length; index++) {
+            const trackId = playlist.tracks[index].id;
+            const track = await this.tracks.findOne({ id: trackId });
+            if (!track || track.deleted) {
+                this.logMessage('download-playlist', logMessageTypes.warning, `track "${trackId}" seems to be deleted`);
+                continue;
+            }
+
+            const fileName = `${track.title}`;
+
+            try {
+                await fs.promises.copyFile(`/home/dafriskymonkey/Music/youtube/${track.id}.mp3`, `${playlistFolderPath}/${fileName}.mp3`);
+                this.logMessage('download-playlist', logMessageTypes.success, `copied track "${fileName}"`);
+            } catch (error) {
+                console.error(error);
+                this.logMessage('download-playlist', logMessageTypes.warning, `track "${track.title}" doesnt exist on the disk or is inaccessible`);
+                continue;
+            }
+
+            m3uContent += `${fileName}.mp3\n`;
+        }
+
+        await fs.promises.writeFile(m3uPath, m3uContent, 'utf-8');
+
+        this.logMessage('download-playlist', logMessageTypes.success, `created playlist file "${playlist.name}"`);
+        this.logMessage('download-playlist', logMessageTypes.finished);
+
+        return playlistFolderPath;
+    }
+
+    executeYtDlp(args) {
+        return new Promise((resolve, reject) => {
+            const command = 'yt-dlp';
+            // const args = args;
+            const options = {
+                cwd: this.filesFolder
+            };
+
+            const childProcess = spawn(command, args, options);
+
+            childProcess.stdout.on('data', (data) => {
+                console.log(`stdout: ${data}`);
+                this.mainWindow.webContents.send('yt-dlp:output', `${data}`);
+            });
+
+            childProcess.stderr.on('data', (data) => {
+                console.error(`stderr: ${data}`);
+                this.mainWindow.webContents.send('yt-dlp:output', `${data}`);
+            });
+
+            childProcess.on('close', (code) => {
+                console.log(`child process exited with code ${code}`);
+                if (code === 0) {
+                    resolve();
+                } else {
+                    reject(new Error(`Terminal process exited with code ${code}`));
+                }
+            });
+        });
+    }
+
+    updateYtDlp() {
+        return this.executeYtDlp(['-U']);
+    }
+
+    async downloadTrack(trackId){
+        const commandString = '--write-info-json -f bestaudio --audio-quality 0 --no-part --audio-format mp3 --download-archive downloaded.txt -ciwx -o %(id)s.%(ext)s -v';
+        let commandArray = commandString.split(' ');
+        commandArray.push(`https://www.youtube.com/watch?v=${trackId}`);
+        return this.executeYtDlp(commandArray);
+    }
+
+    async dummy() {
+        const mm = require('music-metadata');
+
+        mm.parseFile('/home/dafriskymonkey/Music/youtube/ZVtqX34qiC4.mp3', { native: true })
+            .then((metadata) => {
+                // extract the BPM from the metadata
+                const bpm = metadata.native['ID3v2.4'][0].BPM;
+                console.log(`The BPM of the song is ${bpm}`);
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+
     }
 
 
