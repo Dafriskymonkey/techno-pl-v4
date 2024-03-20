@@ -89,6 +89,7 @@ class DataManager {
         this.settingsFile = path.join(this.dataFolder, 'settings.json');
 
         this.filesFolder = path.join(this.appFolder, 'Files');
+        this.trackInfosFolder = path.join(this.appFolder, 'Track-Infos');
 
         this.dbPath = path.join(this.dataFolder, 'data.db');
 
@@ -121,6 +122,10 @@ class DataManager {
 
         if (!fs.existsSync(this.filesFolder)) {
             await fs.promises.mkdir(this.filesFolder);
+        }
+
+        if (!fs.existsSync(this.trackInfosFolder)) {
+            await fs.promises.mkdir(this.trackInfosFolder);
         }
 
         const adapter = new LokiFsAdapter();
@@ -394,17 +399,20 @@ class DataManager {
         // }
         // return;
 
-        let jsonFiles = await fs.promises.readdir('/home/dafriskymonkey/Music/youtube/');
+        let jsonFiles = await fs.promises.readdir(this.filesFolder);
         jsonFiles = jsonFiles.filter(file => file.endsWith('.info.json'));
         const trackIds = [];
         for (const file of jsonFiles) {
-            const json = await fs.promises.readFile(`/home/dafriskymonkey/Music/youtube/${file}`);
+            const filePath = path.join(this.filesFolder, file);
+            const json = await fs.promises.readFile(filePath);
             let info = Object.assign(JSON.parse(json));
             if (!info.duration || !info.upload_date) {
                 console.info(`${file} is not an info file`);
                 continue;
             }
-            if (!fs.existsSync(`/home/dafriskymonkey/Music/youtube/${info.id}.mp3`)) {
+
+            const trackPath = path.join(this.filesFolder, `${info.id}.mp3`);
+            if (!fs.existsSync(trackPath)) {
                 console.info(`mp3 file ${info.id}.mp3 doenst exist`);
                 continue;
             }
@@ -426,7 +434,7 @@ class DataManager {
                 const track = await this.tracks.findOne({ id: info.id });
                 if (!track) this.tracks.insert(info);
                 else this.tracks.update(Object.assign(info, track));
-                await fs.promises.rename(`/home/dafriskymonkey/Music/youtube/${file}`, `/home/dafriskymonkey/Music/track-infos/${file}`);
+                await fs.promises.rename(filePath, path.join(this.trackInfosFolder, file));
                 await this.save();
                 console.info(`saved ${info.id}`);
             } catch (error) {

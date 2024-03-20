@@ -63,18 +63,10 @@ export class Home {
           this.playPause();
           event.preventDefault();
           break;
-        case 'm':
-          this.player.muted = !this.player.muted;
-          event.preventDefault();
-          break;
-        // case 'b':
-        //   this.openTrackInfo(this.track);
+        // case 'm':
+        //   this.player.muted = !this.player.muted;
         //   event.preventDefault();
         //   break;
-        case 'j':
-          this.openTrackInfo(this.track);
-          event.preventDefault();
-          break;
         case 'ArrowLeft':
           this.move(true);
           event.preventDefault();
@@ -90,22 +82,22 @@ export class Home {
         //   this.nextTrack();
         //   event.preventDefault();
         //   break;
-        case 'd':
-          if (this.track) this.deleteTrack(this.track);
-          event.preventDefault();
-          break;
+        // case 'd':
+        //   if (this.track) this.deleteTrack(this.track);
+        //   event.preventDefault();
+        //   break;
         case 'Delete':
           if (this.track) this.deleteTrack(this.track);
           event.preventDefault();
           break;
-        case 'z':
-          this.prevTrack();
-          event.preventDefault();
-          break;
-        case 'b':
-          this.nextTrack();
-          event.preventDefault();
-          break;
+        // case 'z':
+        //   this.prevTrack();
+        //   event.preventDefault();
+        //   break;
+        // case 'b':
+        //   this.nextTrack();
+        //   event.preventDefault();
+        //   break;
         default:
           break;
       }
@@ -310,19 +302,6 @@ export class Home {
 
     await this.getTracks();
     this.track = await this._tracksManager.nextTrack(track.id);
-  }
-
-  openTrackInfo(track) {
-    document.removeEventListener('keydown', this.keydown);
-    this._dialogService.open({
-      viewModel: PLATFORM.moduleName('vcs/home/track-info'), model: {
-        track: track
-      }, lock: false
-    }).whenClosed(response => {
-      document.addEventListener('keydown', this.keydown);
-      if (response.wasCancelled) return;
-      this.track.playlists = response.output.track.playlists;
-    });
   }
 
   async downloadPlaylist() {
