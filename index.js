@@ -104,7 +104,8 @@ app.whenReady().then(async () => {
         {
           label: 'dummy',
           async click() {
-            config.dummy();
+            await dataManager.dummy();
+            
           }
         }
       ]

@@ -91,6 +91,9 @@ class DataManager {
         this.filesFolder = path.join(this.appFolder, 'Files');
         this.trackInfosFolder = path.join(this.appFolder, 'Track-Infos');
 
+
+        this.playlistsFolder = path.join(this.appFolder, 'Playlists');
+
         this.dbPath = path.join(this.dataFolder, 'data.db');
 
         console.info('this.appFolder', this.appFolder);
@@ -128,6 +131,10 @@ class DataManager {
             await fs.promises.mkdir(this.trackInfosFolder);
         }
 
+        if (!fs.existsSync(this.playlistsFolder)) {
+            await fs.promises.mkdir(this.playlistsFolder);
+        }
+
         const adapter = new LokiFsAdapter();
         this.db = new loki(this.dbPath, {
             adapter
@@ -147,6 +154,9 @@ class DataManager {
                 }
             });
         });
+
+        this.tracks.removeWhere({ deleted: true });
+        await this.save();
 
         return this.getMissingFiles();
     }
@@ -478,12 +488,14 @@ class DataManager {
             return;
         }
 
-        const playlistFolderPath = `/home/dafriskymonkey/Music/Techno-PL/${playlist.name}`;
+        const playlistFolderPath = path.join(this.playlistsFolder, playlist.name);
 
-        await fs.promises.rmdir(playlistFolderPath, { recursive: true });
+        if(fs.existsSync(playlistFolderPath)){
+            await fs.promises.rmdir(playlistFolderPath, { recursive: true });
+        }
         await fs.promises.mkdir(playlistFolderPath);
 
-        const m3uPath = `${playlistFolderPath}/${playlist.name}.m3u8`;
+        const m3uPath = path.join(playlistFolderPath, `${playlist.name}.m3u8`);
         let m3uContent = '#EXTM3U\n';
 
         for (let index = 0; index < playlist.tracks.length; index++) {
@@ -497,7 +509,9 @@ class DataManager {
             const fileName = `${track.title}`;
 
             try {
-                await fs.promises.copyFile(`/home/dafriskymonkey/Music/youtube/${track.id}.mp3`, `${playlistFolderPath}/${fileName}.mp3`);
+                const ogFile = this.getTrackPath(track.id);
+                const destinationFile = path.join(playlistFolderPath, `${fileName}.mp3`)
+                await fs.promises.copyFile(ogFile, destinationFile);
                 this.logMessage('download-playlist', logMessageTypes.success, `copied track "${fileName}"`);
             } catch (error) {
                 console.error(error);
@@ -559,18 +573,14 @@ class DataManager {
     }
 
     async dummy() {
-        const mm = require('music-metadata');
+        let deletedTracks = await this.tracks.find({ deleted: true });
+        console.info('deletedTracks', deletedTracks.length);
 
-        mm.parseFile('/home/dafriskymonkey/Music/youtube/ZVtqX34qiC4.mp3', { native: true })
-            .then((metadata) => {
-                // extract the BPM from the metadata
-                const bpm = metadata.native['ID3v2.4'][0].BPM;
-                console.log(`The BPM of the song is ${bpm}`);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
+        this.tracks.removeWhere({ deleted: true });
+        await this.save();
 
+        deletedTracks = await this.tracks.find({ deleted: true });
+        console.info('deletedTracks', deletedTracks.length);
     }
 
 
