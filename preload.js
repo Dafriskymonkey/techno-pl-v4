@@ -4,7 +4,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     log: (message) => ipcRenderer.send('log', message),
     openYoutube: (trackId) => ipcRenderer.send('api:open-youtube', trackId),
     getTracks: (callback) => ipcRenderer.on('main:get-tracks', callback),
-    onMessage: (callback) => ipcRenderer.on('api:message', callback)
+    onMessage: (callback) => ipcRenderer.on('api:message', callback),
+    showConfirm: (message) => ipcRenderer.invoke('api:show-confirm', message)
 });
 
 contextBridge.exposeInMainWorld('db', {

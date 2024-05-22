@@ -295,7 +295,8 @@ export class Home {
   }
 
   async deleteTrack(track) {
-    let test = confirm(`do you really want to delete "${track.title}" ??`);
+
+    let test = await electronAPI.showConfirm(`do you really want to delete "${track.title}" ??`);
     if (!test) return;
 
     await this._tracksManager.deleteTrack(track.id);

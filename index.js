@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const { Menu, app, BrowserWindow, ipcMain, shell } = require('electron');
+const { Menu, app, BrowserWindow, ipcMain, shell, dialog } = require('electron');
 const path = require('path');
 const serve = require('electron-serve');
 const loadURL = serve({ directory: 'build' });
@@ -211,6 +211,20 @@ app.whenReady().then(async () => {
   ipcMain.handle('db:get-track-object', async (event, trackId) => {
     console.info('db:get-track-object');
     return await dataManager.getTrackObject(trackId);
+  });
+
+  ipcMain.handle('api:show-confirm', async (event, message) => {
+    console.info('api:show-confirm');
+
+    const result = await dialog.showMessageBox(mainWindow, {
+      type: 'warning',
+      buttons: ['OK', 'Cancel'],
+      defaultId: 1,
+      title: 'Confirm',
+      message: message,
+    });
+
+    return result.response == 0;
   });
 
   createWindow();

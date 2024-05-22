@@ -10,7 +10,9 @@
     "productName": "Beathub",
     "files": [
       "build/**/*",
-      "main.js"
+      "index.js",
+      "data-manager.js",
+      "preload.js"
     ],
     "appId": "com.smbsol.beathub",
     "win": {},
@@ -26,7 +28,8 @@
     "fs": "^0.0.1-security",
     "lokijs": "^1.5.12",
     "music-metadata": "^7.13.4",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "moment": "^2.29.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.7",
@@ -73,7 +76,6 @@
     "json-loader": "^0.5.7",
     "mini-css-extract-plugin": "^2.7.2",
     "minimatch": "^5.1.2",
-    "moment": "^2.29.4",
     "node-sass": "^6",
     "postcss-loader": "^4",
     "promise-polyfill": "^8.2.3",
@@ -96,15 +98,16 @@
     "defaults"
   ],
   "scripts": {
-    "build": "webpack --env.production",
+    "build": "webpack --env production",
     "start": "webpack-dev-server",
     "build:dev": "webpack",
-    "analyze": "webpack --env.production --analyze",
+    "analyze": "webpack --env production --analyze",
     "test": "au test",
     "electron": "wait-on http://localhost:9090 && electron .",
     "electron-dev": "concurrently \"yarn run start\" \"yarn run electron\"",
     "preelectron-pack": "yarn build",
-    "electron-pack": "electron-builder"
+    "electron-pack": "electron-builder",
+    "postinstall": "electron-builder install-app-deps"
   },
   "engines": {
     "node": ">=10.12.0"

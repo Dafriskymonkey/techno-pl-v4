@@ -89,9 +89,9 @@ export class SourceCodeDisplay {
       });
   }
 
-  removeFromPlaylist(playlist) {
+  async removeFromPlaylist(playlist) {
     if(!this.track) return;
-    const test = confirm(`do you really want to remove "${this.track.title}" from playlist "${playlist.name}"`);
+    const test = await electronAPI.showConfirm(`do you really want to remove "${this.track.title}" from playlist "${playlist.name}"`);
     if (test) {
       this.loading = true;
       return this._tracksManager.savePlaylist(this.track.id, playlist.name, true)
