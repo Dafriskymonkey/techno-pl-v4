@@ -370,3 +370,55 @@ nav.head a:hover {
 .entity-saving {
   background-color: rgb(179, 255, 179) !important;
 }
+
+.custom-checkbox {
+  display: none;
+}
+
+.custom-checkbox+label {
+  display: inline-block;
+  width: 20px;
+  /* Adjust the size as needed */
+  height: 20px;
+  border-radius: 50%;
+  /* Make it round */
+  border: 2px solid #000;
+  /* Border color */
+  cursor: pointer;
+  background-color: #FFF;
+  /* Default background color */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  /* Smooth transition */
+  position: relative;
+  /* For inner shadow positioning */
+}
+
+.custom-checkbox+label::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  /* Adjust position as needed */
+  left: -5px;
+  /* Adjust position as needed */
+  width: calc(100% + 10px);
+  /* Adjust width for inner shadow */
+  height: calc(100% + 10px);
+  /* Adjust height for inner shadow */
+  border-radius: 50%;
+  /* Make it round */
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.2);
+  /* Inner shadow */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.custom-checkbox:checked+label {
+  background: linear-gradient(135deg, #00E4BE, #00FF00);
+  /* Green light gradient */
+  box-shadow: 0 0 10px rgba(0, 228, 190, 0.6);
+  /* Outer glow */
+}
+
+.custom-checkbox:checked+label::before {
+  opacity: 1;
+}

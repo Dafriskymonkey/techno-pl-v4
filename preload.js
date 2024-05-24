@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('db', {
     getPlaylists: () => ipcRenderer.invoke('db:get-playlists'),
     jumpToTrack: (trackId, size, playlistId) => ipcRenderer.invoke('db:jump-to-track', trackId, size, playlistId),
     savePlaylist: (trackId, playlist, isDelete) => ipcRenderer.invoke('db:save-playlist', trackId, playlist, isDelete),
+    editPlaylist: (playlistId, playlistObj) => ipcRenderer.invoke('db:edit-playlist', playlistId, playlistObj),
     deleteTrack: (trackId) => ipcRenderer.invoke('db:delete-track', trackId),
     nextTrack: (trackId) => ipcRenderer.invoke('db:next-track', trackId),
     downloadPlaylist: (playlistId) => ipcRenderer.invoke('db:download-playlist', playlistId)

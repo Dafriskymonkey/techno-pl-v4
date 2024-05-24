@@ -14,11 +14,13 @@ export class SourceCodeDisplay {
     this._playlistsManager = playlistsManager;
 
     this.playListName = '';
+
+    this.activeOnly = true;
   }
 
   // activate(model) {
   //   this.track = model.track;
-    
+
   //   console.info('this.track', this.track);
   // }
 
@@ -29,14 +31,33 @@ export class SourceCodeDisplay {
     }, 10);
 
     this.playlistsChanged = this._eventAggregator.subscribe('playlists-changed', playlists => {
-      if(!this.track) return;
+      if (!this.track) return;
       this.playlists = playlists.filter(pl => !this.track.playlists.find(_ => _ == pl.name));
     });
+
+    this.playlistChanged = this._eventAggregator.subscribe('playlist-changed', async playlist => {
+      if (!this.track) return;
+
+      let oldName = null;
+
+      let index = this.track._playlists.map(pl => pl.id).indexOf(playlist.id);
+      if (index >= 0) {
+        oldName = this.track._playlists[index].name;
+        this.track._playlists[index].name = playlist.name;
+      }
+
+      index = this.track.playlists.indexOf(oldName);
+      if (index >= 0) {
+        this.track.playlists[index] = playlist.name;
+      }
+    });
+
     this.getPlaylists();
   }
 
   detached() {
     this.playlistsChanged.dispose();
+    this.playlistChanged.dispose();
   }
 
   getPlaylists() {
@@ -44,13 +65,16 @@ export class SourceCodeDisplay {
     return this._playlistsManager.getPlaylists()
       .then(playlists => {
         this.loading = false;
-        if(!this.track) return;
+        if (!this.track) return;
         this.track._playlists = this.track.playlists
           .map(pl => {
+            const playlist = playlists.find(_ => _.name == pl);
 
             const item = {
+              id: playlist.id,
               name: pl,
-              count: playlists.find(_ => _.name == pl).tracks.length
+              count: playlist.tracks.length,
+              active: playlist.active
             };
 
             return item;
@@ -72,7 +96,7 @@ export class SourceCodeDisplay {
   }
 
   addToPlaylist() {
-    if(!this.track) return;
+    if (!this.track) return;
     this.loading = true;
     return this._tracksManager.savePlaylist(this.track.id, this.playListName, false)
       .then(track => {
@@ -90,7 +114,7 @@ export class SourceCodeDisplay {
   }
 
   async removeFromPlaylist(playlist) {
-    if(!this.track) return;
+    if (!this.track) return;
     const test = await electronAPI.showConfirm(`do you really want to remove "${this.track.title}" from playlist "${playlist.name}"`);
     if (test) {
       this.loading = true;
@@ -109,20 +133,13 @@ export class SourceCodeDisplay {
     }
   }
 
-  async openYoutube(){
-    if(!this.track) return;
+  async openYoutube() {
+    if (!this.track) return;
     await electronAPI.openYoutube(this.track.id);
   }
 
-  trackChanged(){
-    if(!this.track) return;
+  trackChanged() {
+    if (!this.track) return;
     this.getPlaylists();
-  }
-}
-
-export class FilterValueConverter {
-  toView(playlists, search) {
-    if (!search || !search.length) return playlists;
-    return playlists.filter(_ => _.name.toLowerCase().startsWith(search));
   }
 }

@@ -1,0 +1,130 @@
+<template>
+
+    <require from="resources/formats/playlist-filter"></require>
+
+    <ux-dialog>
+        <ux-dialog-body>
+            <div class="text-right">
+                <i class="fas fa-times" style="cursor: pointer;" click.delegate="controller.cancel()"></i>
+                <hr />
+            </div>
+            <div>
+                <div style="display: flex;align-items: center; justify-content: space-between;">
+                    <h3>PLaylists Manager</h3>
+                </div>
+                <hr />
+            </div>
+            <div>
+                <form class="filter-form">
+                    <input id="playlist-input" class="form-control" style="width: 240px" value.bind="playListName"
+                        placeholder="playlist" autocomplete="off" />
+                </form>
+            </div>
+            <div class="pls-container">
+                <table class="os-table">
+                    <thead>
+                        <tr>
+                            <th
+                                style="border-bottom: 1px solid white; color: #060047; font-weight: bold; font-size: large; text-transform: uppercase;">
+                                name(tracks)
+                            </th>
+                            <th style="border-bottom: 1px solid white; color: #060047; font-weight: bold; font-size: large; text-transform: uppercase;"
+                                class="text-center">
+                                active
+                            </th>
+                            <th style="border-bottom: 1px solid white;">
+                                <span show.bind="changed" class="actions">
+                                    <a href style="color: #FFA500;" click.delegate="saveAll()">
+                                        <i class="fas fa-save"></i> save all
+                                    </a>
+                                    <a href style="color: red;" click.delegate="undo()">
+                                        <i class="fas fa-undo"></i> undo all
+                                    </a>
+                                </span>
+                                <span show.bind="!changed" class="actions">
+                                    <span>
+                                        <i class="fas fa-save"></i> save all
+                                    </span>
+                                    <span>
+                                        <i class="fas fa-undo"></i> undo all
+                                    </span>
+                                </span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr repeat.for="playlist of playlists | filter: playListName">
+                            <td>
+                                <input value.bind="playlist.name" />
+                                <span>(${playlist.tracks})</span>
+                            </td>
+                            <td class="text-center">
+                                <input type="checkbox" id="${playlist.id}" class="custom-checkbox"
+                                    checked.bind="playlist.active" />
+                                <label for="${playlist.id}"></label>
+                            </td>
+                            <td>
+                                <span show.bind="playlist.changed" class="actions">
+                                    <a href style="color: #FFA500;" click.delegate="savePlaylist(playlist)">
+                                        <i class="fas fa-save"></i> save
+                                    </a>
+                                    <a href style="color: red;" click.delegate="playlist.undo()">
+                                        <i class="fas fa-undo"></i> undo
+                                    </a>
+                                </span>
+                                <span show.bind="!playlist.changed" class="actions">
+                                    <span>
+                                        <i class="fas fa-save"></i> save
+                                    </span>
+                                    <span>
+                                        <i class="fas fa-undo"></i> undo
+                                    </span>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </ux-dialog-body>
+        <!-- <ux-dialog-footer>
+            <button class="btn btn--os-light" click.delegate="controller.cancel()">
+                <i class="fas fa-times"></i> cancel
+            </button>
+            <button class="btn" click.delegate="ok()" disabled.bind="loading">
+                <i class="fas fa-check"></i> ok
+            </button>
+        </ux-dialog-footer> -->
+    </ux-dialog>
+
+    <style>
+        ux-dialog-container>div {
+            margin: 24px !important;
+        }
+
+        .pls-container {
+            height: 480px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .actions {
+            width: 100%;
+            display: flex;
+            justify-content: space-evenly;
+            font-weight: bolder;
+        }
+
+        .filter-form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 6px;
+        }
+    </style>
+
+</template>

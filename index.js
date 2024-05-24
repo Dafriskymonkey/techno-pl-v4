@@ -18,8 +18,8 @@ function isDev() {
 function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 1366,
-    height: 768,
+    width: 1600,
+    height: 900,
     // fullscreen: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -154,6 +154,12 @@ app.whenReady().then(async () => {
   ipcMain.handle('db:save-playlist', async (event, trackId, playlist, isDelete) => {
     console.info('db:save-playlist', trackId, playlist, isDelete);
     const result = await dataManager.savePlaylist(trackId, playlist, isDelete);
+    return result;
+  });
+
+  ipcMain.handle('db:edit-playlist', async (event, playlistId, playlistObj) => {
+    console.info('db:edit-playlist', playlistId, playlistObj);
+    const result = await dataManager.editPlaylist(playlistId, playlistObj);
     return result;
   });
 

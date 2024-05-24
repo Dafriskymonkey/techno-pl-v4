@@ -1,4 +1,7 @@
 <template>
+
+  <require from="resources/formats/playlist-filter"></require>
+
   <div>
     <div style="display: flex;align-items: center; justify-content: space-between;">
       <h4>${track.title}</h4>
@@ -21,11 +24,31 @@
       </form>
     </div>
     <hr />
+    <div class="active-only-container">
+      <span click.delegate="activeOnly = !activeOnly" style="cursor: pointer;">
+        <span show.bind="activeOnly">active only</span>
+        <span show.bind="!activeOnly" style="color: white;">all</span>
+      </span>
+      <input type="checkbox" id="active-only" class="custom-checkbox" checked.bind="activeOnly" />
+      <label for="active-only"></label>
+    </div>
     <div
       style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 12px; row-gap: 6px;">
       <a href style="color: lightgray;" repeat.for="playlist of playlists | filter: playListName"
-        click.delegate="addPlaylist(playlist.name)"><span
+        click.delegate="addPlaylist(playlist.name)" show.bind="playlist.active || !activeOnly"><span
           style="font-size: larger;">${playlist.name}</span>(${playlist.tracks.length})</a>
     </div>
   </div>
+
+  <style>
+    .active-only-container {
+      margin-bottom: 12px;
+      padding-right: 3px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      column-gap: 6px;
+    }
+  </style>
+
 </template>

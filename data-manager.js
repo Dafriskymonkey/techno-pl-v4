@@ -171,7 +171,7 @@ class DataManager {
         return trackId;
     }
 
-    getMissingFiles(){
+    async getMissingFiles(){
         let filter = { deleted: false };
         const tracks = this.tracks.chain().find(filter).simplesort('createdDate', true).data();
 
@@ -181,6 +181,9 @@ class DataManager {
             const trackPath = path.join(this.filesFolder, `${track.id}.mp3`);
             if (!fs.existsSync(trackPath)) {
                 missingTrackFiles.push(track.id);
+                // track.deleted = true;
+                // await this.tracks.update(track);
+                // await this.save();
             }
         }
 
@@ -317,7 +320,8 @@ class DataManager {
                     name: playlistName, tracks: [{
                         id: track.id,
                         tags: []
-                    }]
+                    }],
+                    active: true
                 };
                 await this.playlists.insert(playlist);
             } else {
@@ -346,6 +350,43 @@ class DataManager {
         await this.save();
 
         return track;
+    }
+
+    async editPlaylist(playlistId, playlistObj){
+        const playlist = await this.playlists.findOne({ id: playlistId });
+        if(!playlist) return null;
+
+        let hasToSave = false;
+        if(playlist.active !== playlistObj.active) {
+            playlist.active = playlistObj.active;            
+            hasToSave = true;
+        }
+
+        const playlistName = playlistObj.name.toPlaylistName();
+        if(playlist.name !== playlistName){
+            const tracks = this.tracks.find({ playlists: { '$contains': playlist.name } });
+            if (tracks.length) {
+                for (let i = 0; i < tracks.length; i++) {
+                    const track = tracks[i];
+
+                    let plIndex = track.playlists.indexOf(playlist.name);
+                    if(plIndex < 0) continue;
+
+                    track.playlists[plIndex] = playlistName;
+                    track.playlists = track.playlists.sort();
+                    await this.tracks.update(track);
+                }
+            }
+
+            playlist.name = playlistName;
+            hasToSave = true;
+        }
+
+
+        if(hasToSave){
+            await this.playlists.update(playlist);
+            await this.save();
+        }
     }
 
     async deleteTrack(trackId) {
@@ -573,14 +614,20 @@ class DataManager {
     }
 
     async dummy() {
-        let deletedTracks = await this.tracks.find({ deleted: true });
-        console.info('deletedTracks', deletedTracks.length);
+        // let playlists = await this.playlists.find({});
 
-        this.tracks.removeWhere({ deleted: true });
-        await this.save();
+        // for (let index = 0; index < playlists.length; index++) {
+        //     const playlist = playlists[index];
+        //     playlist.active = true;
 
-        deletedTracks = await this.tracks.find({ deleted: true });
-        console.info('deletedTracks', deletedTracks.length);
+        //     await this.playlists.update(playlist);
+        // }
+
+        // this.save();
+
+        // playlists = await this.playlists.find({});
+
+        // console.info('playlists', playlists);
     }
 
 

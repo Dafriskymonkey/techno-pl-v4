@@ -26,22 +26,22 @@ export class Home {
     await this.getTracks();
     const trackIdSetting = await db.getTrackIdSetting();
     console.info('trackIdSetting', trackIdSetting);
-    if(trackIdSetting){
+    if (trackIdSetting) {
       const track = await db.getTrackObject(trackIdSetting);
       console.info('track', track);
-      if(track){
+      if (track) {
         this.track = track;
         this.jumpToTrack();
       }
     }
-    else{
-      if(this.tracks.length) this.track = this.tracks[0];      
+    else {
+      if (this.tracks.length) this.track = this.tracks[0];
     }
 
     this.player = document.getElementById('player');
 
     this.player.onloadeddata = () => {
-      this.player.currentTime = this.player.duration * 4 / 10;
+      // this.player.currentTime = this.player.duration * 4 / 10;
       this.player.play();
     };
 
@@ -116,7 +116,7 @@ export class Home {
       console.info('this.playlists', this.playlists);
     });
 
-    this.getTracksEvent = this._eventAggregator.subscribe('main:get-tracks', async value => {
+    this.mainGetTracksEvent = this._eventAggregator.subscribe('main:get-tracks', async value => {
       this.page = 1;
       this.size = 10;
       this.count = 0;
@@ -126,6 +126,10 @@ export class Home {
       if (this.tracks.length) this.track = this.tracks[0];
     });
 
+    this.playlistChanged = this._eventAggregator.subscribe('playlist-changed', async () => {
+      this.getTracks();
+    });
+
     this.getPlaylists();
   }
 
@@ -133,7 +137,8 @@ export class Home {
     document.removeEventListener('keydown', this.keydown);
     this.trackPlaylistsChanged.dispose();
     this.playlistsChanged.dispose();
-    this.getTracksEvent.dispose();
+    this.mainGetTracksEvent.dispose();
+    this.playlistChanged.dispose();
   }
 
   getPlaylists() {
@@ -172,20 +177,20 @@ export class Home {
     this.total = 0;
     await this.getTracks();
 
-    if(this.playlistId){
-      if(this.tracks.length) this.track = this.tracks[0];   
+    if (this.playlistId) {
+      if (this.tracks.length) this.track = this.tracks[0];
       return;
     }
     const trackIdSetting = await db.getTrackIdSetting();
-    if(trackIdSetting){
+    if (trackIdSetting) {
       const track = await db.getTrackObject(trackIdSetting);
-      if(track){
+      if (track) {
         this.track = track;
         this.jumpToTrack();
       }
     }
-    else{
-      if(this.tracks.length) this.track = this.tracks[0];      
+    else {
+      if (this.tracks.length) this.track = this.tracks[0];
     }
   }
 
@@ -226,7 +231,7 @@ export class Home {
       const audioURL = URL.createObjectURL(audioBlob);
       this.player.src = audioURL;
       this.player.load();
-      if(!this.playlistId) {
+      if (!this.playlistId) {
         await db.setTrackIdSetting(this.track.id);
       }
     }
@@ -357,10 +362,10 @@ export class Home {
 
   }
 
-  openPLaylistSelector() {
+  openPLaylists() {
     document.removeEventListener('keydown', this.keydown);
     this._dialogService.open({
-      viewModel: PLATFORM.moduleName('vcs/home/playlists-selector'), model: {}, lock: false
+      viewModel: PLATFORM.moduleName('vcs/home/playlists'), model: {}, lock: false
     }).whenClosed(response => {
       document.addEventListener('keydown', this.keydown);
       if (response.wasCancelled) return;

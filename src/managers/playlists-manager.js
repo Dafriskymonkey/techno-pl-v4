@@ -26,4 +26,9 @@ export class PlaylistsManager {
     return await db.downloadPlaylist(playlistId);
   }
 
+  async editPlaylist(playlistId, playlistObj){
+    const result = await db.editPlaylist(playlistId, playlistObj);
+    await this.getPlaylists();
+  }
+
 }
