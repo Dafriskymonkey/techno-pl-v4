@@ -2,14 +2,16 @@ import { inject } from 'aurelia-framework';
 import { DialogController } from 'aurelia-dialog';
 import { EventAggregator } from 'aurelia-event-aggregator';
 import { PlaylistsManager } from 'managers/playlists-manager';
+import { ToastsHandler } from 'managers/toasts-handler';
 
-@inject(DialogController, EventAggregator, PlaylistsManager)
+@inject(DialogController, EventAggregator, PlaylistsManager, ToastsHandler)
 export class Playlists {
 
-    constructor(controller, eventAggregator, playlistsManager) {
+    constructor(controller, eventAggregator, playlistsManager, toastsHandler) {
         this.controller = controller;
         this._eventAggregator = eventAggregator;
         this._playlistsManager = playlistsManager;
+        this._toastsHandler = toastsHandler;
 
         this.loading = false;
 
@@ -44,9 +46,9 @@ export class Playlists {
             });
     }
 
-    async savePlaylist(playlist, dontShowConfirm) {
+    async savePlaylist(playlist, many) {
 
-        if (!dontShowConfirm) {
+        if (!many) {
             let test = await electronAPI.showConfirm(`do you really want to edit "${playlist.name}" ??`);
             if (!test) return;
         }
@@ -58,6 +60,10 @@ export class Playlists {
         console.info('editPlaylist', result);
 
         this._eventAggregator.publish('playlist-changed', playlist);
+
+        if (!many) {
+            this._toastsHandler.success(`playlist <strong>"${playlist.name}"</strong> has been saved`);
+        }
     }
 
     async saveAll() {
@@ -71,6 +77,8 @@ export class Playlists {
             const playlist = changedPls[index];
             await this.savePlaylist(playlist, true);
         }
+
+        this._toastsHandler.success(`playlists <strong>"${changedPlNames}"</strong> have been saved`);
     }
 
     undo() {

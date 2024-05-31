@@ -1,6 +1,8 @@
  + check data integrity at launch (missing mp3, data ..)
- + remove from playlists after deleting the track
  + sorting a playlist
+ + toasts
+ + delete playlist
+ + playlists sorting
 
  //rruthology UCw59OmZvwnXB5ivCbBNDbmw
 

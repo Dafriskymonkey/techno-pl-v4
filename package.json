@@ -27,9 +27,9 @@
     "electron-serve": "^1.0.0",
     "fs": "^0.0.1-security",
     "lokijs": "^1.5.12",
+    "moment": "^2.29.4",
     "music-metadata": "^7.13.4",
-    "uuid": "^9.0.1",
-    "moment": "^2.29.4"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.7",
@@ -77,6 +77,7 @@
     "mini-css-extract-plugin": "^2.7.2",
     "minimatch": "^5.1.2",
     "node-sass": "^6",
+    "noty": "^3.2.0-beta-deprecated",
     "postcss-loader": "^4",
     "promise-polyfill": "^8.2.3",
     "query-string": "^8.1.0",

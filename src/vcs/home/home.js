@@ -4,18 +4,20 @@ import { EventAggregator } from 'aurelia-event-aggregator';
 import { DialogService } from 'aurelia-dialog';
 import { TracksManager } from 'managers/tracks-manager';
 import { PlaylistsManager } from 'managers/playlists-manager';
+import { ToastsHandler } from 'managers/toasts-handler';
 
-@inject(DialogService, EventAggregator, TracksManager, PlaylistsManager)
+@inject(DialogService, EventAggregator, TracksManager, PlaylistsManager, ToastsHandler)
 export class Home {
 
   @bindable track = null;
   @bindable page = 1;
   @bindable playlistId = null;
-  constructor(dialogService, eventAggregator, tracksManager, playlistsManager) {
+  constructor(dialogService, eventAggregator, tracksManager, playlistsManager, toastsHandler) {
     this._dialogService = dialogService;
     this._tracksManager = tracksManager;
     this._playlistsManager = playlistsManager;
     this._eventAggregator = eventAggregator;
+    this._toastsHandler = toastsHandler;
 
     this.size = 10;
     this.count = 0;
@@ -308,6 +310,8 @@ export class Home {
 
     await this.getTracks();
     this.track = await this._tracksManager.nextTrack(track.id);
+
+    this._toastsHandler.success(`track <strong>"${track.title}"</strong> has been deleted`);
   }
 
   async downloadPlaylist() {
@@ -363,6 +367,7 @@ export class Home {
   }
 
   openPLaylists() {
+
     document.removeEventListener('keydown', this.keydown);
     this._dialogService.open({
       viewModel: PLATFORM.moduleName('vcs/home/playlists'), model: {}, lock: false

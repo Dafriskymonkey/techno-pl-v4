@@ -34,7 +34,7 @@
     </div>
     <div
       style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 12px; row-gap: 6px;">
-      <a href style="color: lightgray;" repeat.for="playlist of playlists | filter: playListName"
+      <a href class="${playlist.active ? 'active' : 'unactive'}" repeat.for="playlist of playlists | filter: playListName"
         click.delegate="addPlaylist(playlist.name)" show.bind="playlist.active || !activeOnly"><span
           style="font-size: larger;">${playlist.name}</span>(${playlist.tracks.length})</a>
     </div>
@@ -49,6 +49,15 @@
       align-items: center;
       column-gap: 6px;
     }
+
+    .active{
+      color: lightgray;
+    }
+
+    .unactive{
+      color: gray;
+    }
+
   </style>
 
 </template>

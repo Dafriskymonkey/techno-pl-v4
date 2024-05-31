@@ -31,14 +31,10 @@ $titles: (
   }
 }
 
-// links
+// links color: $os-primary;
 a {
-  color: $os-primary;
   transition: color .3s;
   position: relative;
-  &:hover {
-    color: darken($os-primary, 10%);
-  }
 }
 
 // paragraph
