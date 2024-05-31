@@ -16,6 +16,8 @@ export class Playlists {
         this.loading = false;
 
         this.playlists = [];
+
+        this.selectedTab = 'edit';
     }
 
     activate() {
@@ -55,7 +57,8 @@ export class Playlists {
 
         const result = await this._playlistsManager.editPlaylist(playlist.id, {
             name: playlist.name,
-            active: playlist.active
+            active: playlist.active,
+            links: playlist.links
         });
         console.info('editPlaylist', result);
 
@@ -104,17 +107,21 @@ class Playlist {
         this.name = playlist.name;
         this.active = playlist.active;
         this.tracks = playlist.tracks && playlist.tracks.length ? playlist.tracks.length : 0;
+        this.links = playlist.links || [];
+        this.selectedLink = null;
 
         this.old = JSON.stringify({
             name: playlist.name,
-            active: playlist.active
+            active: playlist.active,
+            links: playlist.links || []
         });
     }
 
     get changed() {
         const test = this.old !== JSON.stringify({
             name: this.name,
-            active: this.active
+            active: this.active,
+            links: this.links
         });
         return test;
     }
@@ -123,5 +130,24 @@ class Playlist {
         const old = JSON.parse(this.old);
         this.name = old.name;
         this.active = old.active;
+        this.links = old.links || [];
+    }
+
+    addLink() {
+        if (!this.selectedLink) return;
+
+        if (!this.links.find(_ => _ == this.selectedLink)) {
+            this.links.push(this.selectedLink);
+            this.links = this.links.sort();
+        }
+
+        this.selectedLink = null;
+    }
+
+    removeLink(playlistName) {
+        let index = this.links.indexOf(playlistName);
+        if (index < 0) return;
+
+        this.links.splice(index, 1);
     }
 }

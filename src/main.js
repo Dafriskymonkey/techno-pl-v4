@@ -17,7 +17,7 @@ export function configure(aurelia) {
     .standardConfiguration()
     .plugin(PLATFORM.moduleName('aurelia-dialog'), config => {
       config.useDefaults();
-      // config.useCSS('');
+      config.useCSS('');
     })
     .feature(PLATFORM.moduleName('resources/index'));
 

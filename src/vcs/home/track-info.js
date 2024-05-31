@@ -32,7 +32,9 @@ export class SourceCodeDisplay {
 
     this.playlistsChanged = this._eventAggregator.subscribe('playlists-changed', playlists => {
       if (!this.track) return;
-      this.playlists = playlists.filter(pl => !this.track.playlists.find(_ => _ == pl.name));
+      this.playlists = playlists
+        .filter(pl => !this.track.playlists.find(_ => _ == pl.name))
+        .sort((a, b) => b.tracks.length - a.tracks.length);
     });
 
     this.playlistChanged = this._eventAggregator.subscribe('playlist-changed', async playlist => {
@@ -95,13 +97,27 @@ export class SourceCodeDisplay {
     }, 10);
   }
 
-  addToPlaylist() {
+  async addToPlaylist() {
     if (!this.track) return;
+
+    const plName = this.playListName;
+    await this.savePlaylist(this.playListName);
+    this.playListName = '';
+
+    const playlist = this.playlists.find(_ => _.name == plName);
+    if (!playlist || !playlist.links || !playlist.links.length) return;
+
+    for (let index = 0; index < playlist.links.length; index++) {
+      const link = playlist.links[index];
+      await this.savePlaylist(link);
+    }
+  }
+
+  savePlaylist(plName) {
     this.loading = true;
-    return this._tracksManager.savePlaylist(this.track.id, this.playListName, false)
+    return this._tracksManager.savePlaylist(this.track.id, plName, false)
       .then(track => {
         this.loading = false;
-        this.playListName = '';
         this.track.playlists = track.playlists;
         this._eventAggregator.publish('tracks-playlists-changed', this.track.playlists);
 

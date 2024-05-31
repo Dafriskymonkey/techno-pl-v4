@@ -1,8 +1,6 @@
- + check data integrity at launch (missing mp3, data ..)
- + sorting a playlist
- + toasts
- + delete playlist
- + playlists sorting
++ sorting a playlist
++ delete playlist
++ check data integrity at launch (missing mp3, data ..)
 
  //rruthology UCw59OmZvwnXB5ivCbBNDbmw
 

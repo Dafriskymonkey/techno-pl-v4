@@ -311,7 +311,7 @@ export class Home {
     await this.getTracks();
     this.track = await this._tracksManager.nextTrack(track.id);
 
-    this._toastsHandler.success(`track <strong>"${track.title}"</strong> has been deleted`);
+    this._toastsHandler.warning(`track <strong>"${track.title}"</strong> has been deleted`);
   }
 
   async downloadPlaylist() {

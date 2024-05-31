@@ -11,6 +11,10 @@
             <div>
                 <div style="display: flex;align-items: center; justify-content: space-between;">
                     <h3>PLaylists Manager</h3>
+                    <!-- <span>
+                        <a href class="pl-menu-item ${selectedTab == 'edit' ? 'active' : ''}" click.delegate="selectedTab = 'edit'">edit</a>
+                        <a href class="pl-menu-item ${selectedTab == 'links' ? 'active' : ''}" click.delegate="selectedTab = 'links'">links</a>
+                    </span> -->
                 </div>
                 <hr />
             </div>
@@ -21,19 +25,17 @@
                 </form>
             </div>
             <div class="pls-container">
-                <table class="os-table">
+                <table class="os-table" show.bind="selectedTab == 'edit'">
                     <thead>
                         <tr>
-                            <th
-                                style="border-bottom: 1px solid white; color: #060047; font-weight: bold; font-size: large; text-transform: uppercase;">
+                            <th style="border-bottom: 1px solid white; color: #060047; font-weight: bold;">
                                 <a href style="color: #060047;">
                                     <!-- <i class="fas fa-caret-up"></i> -->
                                     <i class="fas fa-caret-down"></i>
                                     <span>name</span>
                                 </a>
                             </th>
-                            <th
-                                style="border-bottom: 1px solid white; color: #060047; font-weight: bold; font-size: large; text-transform: uppercase;"
+                            <th style="border-bottom: 1px solid white; color: #060047; font-weight: bold;"
                                 class="text-center">
                                 <a href style="color: #060047;">
                                     <!-- <i class="fas fa-caret-up"></i> -->
@@ -41,7 +43,7 @@
                                     <span>tracks</span>
                                 </a>
                             </th>
-                            <th style="border-bottom: 1px solid white; color: #060047; font-weight: bold; font-size: large; text-transform: uppercase;"
+                            <th style="border-bottom: 1px solid white; color: #060047; font-weight: bold;"
                                 class="text-center">
                                 <a href style="color: #060047;">
                                     <!-- <i class="fas fa-caret-up"></i> -->
@@ -49,21 +51,27 @@
                                     <span>active</span>
                                 </a>
                             </th>
+                            <th style="border-bottom: 1px solid white;"></th>
+                            <th style="border-bottom: 1px solid white; color: #060047; font-weight: bold;"
+                                class="text-center">
+                                <i class="fas fa-link"></i>
+                                <span>links</span>
+                            </th>
                             <th style="border-bottom: 1px solid white;">
                                 <span show.bind="changed" class="actions">
                                     <a href style="color: #FFA500;" click.delegate="saveAll()">
-                                        <i class="fas fa-save"></i> save all
+                                        <i class="fas fa-save"></i> all
                                     </a>
                                     <a href style="color: red;" click.delegate="undo()">
-                                        <i class="fas fa-undo"></i> undo all
+                                        <i class="fas fa-undo"></i> all
                                     </a>
                                 </span>
                                 <span show.bind="!changed" class="actions">
                                     <span>
-                                        <i class="fas fa-save"></i> save all
+                                        <i class="fas fa-save"></i> all
                                     </span>
                                     <span>
-                                        <i class="fas fa-undo"></i> undo all
+                                        <i class="fas fa-undo"></i> all
                                     </span>
                                 </span>
                             </th>
@@ -81,6 +89,23 @@
                                 <input type="checkbox" id="${playlist.id}" class="custom-checkbox"
                                     checked.bind="playlist.active" />
                                 <label for="${playlist.id}"></label>
+                            </td>
+                            <td>
+                                <select value.bind="playlist.selectedLink">
+                                    <option model.bind="null">--</option>
+                                    <option repeat.for="pl of playlists" model.bind="pl.name"
+                                        show.bind="pl.name != playlist.name">${pl.name}</option>
+                                </select>
+                                <a href click.delegate="playlist.addLink(pl)">
+                                    <i class="fas fa-plus"></i>
+                                </a>
+                            </td>
+                            <td>
+                                <div repeat.for="link of playlist.links">
+                                    <a href click.delegate="playlist.removeLink(link)">
+                                        <i class="fas fa-minus"></i> ${link}
+                                    </a>
+                                </div>
                             </td>
                             <td>
                                 <span show.bind="playlist.changed" class="actions">
@@ -103,6 +128,9 @@
                         </tr>
                     </tbody>
                 </table>
+                <div show.bind="selectedTab == 'links'">
+                    LINKS
+                </div>
             </div>
         </ux-dialog-body>
         <!-- <ux-dialog-footer>
@@ -143,6 +171,16 @@
             display: flex;
             justify-content: center;
             margin-bottom: 6px;
+        }
+
+        .pl-menu-item {
+            font-weight: bold;
+            color: white;
+            font-size: large;
+        }
+
+        .pl-menu-item.active {
+            color: #00E4BE;
         }
     </style>
 

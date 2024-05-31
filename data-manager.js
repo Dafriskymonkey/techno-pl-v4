@@ -284,7 +284,8 @@ class DataManager {
     getPlaylists() {
         let playlists = this.playlists.chain().find().simplesort('tracks.length', true).data();
         return new Promise((resolve, reject) => {
-            resolve(playlists.sort((a, b) => b.tracks.length - a.tracks.length));
+            // resolve(playlists.sort((a, b) => b.tracks.length - a.tracks.length));
+            resolve(playlists.sort((a, b) => a.name.localeCompare(b.name)));
         });
     }
 
@@ -317,11 +318,13 @@ class DataManager {
                 playlist = {
                     id: uuidv4(),
                     createdDate,
-                    name: playlistName, tracks: [{
+                    name: playlistName,
+                    tracks: [{
                         id: track.id,
                         tags: []
                     }],
-                    active: true
+                    active: true,
+                    links: []
                 };
                 await this.playlists.insert(playlist);
             } else {
@@ -382,6 +385,10 @@ class DataManager {
             hasToSave = true;
         }
 
+        if(JSON.stringify(playlist.links) !== JSON.stringify(playlistObj.links)){
+            playlist.links = playlistObj.links;
+            hasToSave = true;
+        }
 
         if(hasToSave){
             await this.playlists.update(playlist);
@@ -618,7 +625,7 @@ class DataManager {
 
         // for (let index = 0; index < playlists.length; index++) {
         //     const playlist = playlists[index];
-        //     playlist.active = true;
+        //     playlist.links = [];
 
         //     await this.playlists.update(playlist);
         // }
