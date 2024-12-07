@@ -2,41 +2,46 @@
 
   <require from="resources/formats/playlist-filter"></require>
 
-  <div>
-    <div style="display: flex;align-items: center; justify-content: space-between;">
-      <h4>${track.title}</h4>
-      <a href click.delegate="openYoutube()" style="color: red;">
-        <i class="fab fa-youtube fa-lg"></i><span style="font-size: large; font-weight: bold;">youtube</span>
-      </a>
+  <div style="display: flex; flex-direction: column;">
+    <div style="flex-grow: 1;">
+      <div style="display: flex;align-items: center; justify-content: space-between;">
+        <h4>${track.title}</h4>
+        <a href click.delegate="openYoutube()" style="color: red;">
+          <i class="fab fa-youtube fa-lg"></i><span style="font-size: large; font-weight: bold;">youtube</span>
+        </a>
+      </div>
+      <hr />
+      <div class="playlists-container" style="min-height: 48px;">
+        <span repeat.for="playlist of track._playlists" style="cursor: pointer;"
+          dblclick.delegate="removeFromPlaylist(playlist)"><span
+            style="font-size: 24px; font-weight: bold;">${playlist.name}</span>(${playlist.count}) </span>
+        <span if.bind="!track._playlists.length">no playlists yet ..</span>
+      </div>
+      <hr />
+      <div style="width: 100%; display: flex; justify-content: center;">
+        <form submit.delegate="addToPlaylist()" class="mt-1">
+          <input id="playlist-input" class="form-control" style="width: 240px" value.bind="playListName"
+            placeholder="playlist" autocomplete="off" />
+        </form>
+      </div>
+      <hr />
+      <div class="active-only-container">
+        <span click.delegate="activeOnly = !activeOnly" style="cursor: pointer;">
+          <span show.bind="activeOnly">active only</span>
+          <span show.bind="!activeOnly" style="color: white;">all</span>
+        </span>
+        <input type="checkbox" id="active-only" class="custom-checkbox" checked.bind="activeOnly" />
+        <label for="active-only"></label>
+      </div>
+      <div
+        style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 12px; row-gap: 6px;">
+        <a href class="${playlist.active ? 'active' : 'unactive'}" repeat.for="playlist of playlists | filter: playListName"
+          click.delegate="addPlaylist(playlist.name)" show.bind="playlist.active || !activeOnly"><span
+            style="font-size: larger;">${playlist.name}</span>(${playlist.tracks.length})</a>
+      </div>
     </div>
-    <hr />
-    <div class="playlists-container" style="min-height: 48px;">
-      <span repeat.for="playlist of track._playlists" style="cursor: pointer;"
-        dblclick.delegate="removeFromPlaylist(playlist)"><span
-          style="font-size: 24px; font-weight: bold;">${playlist.name}</span>(${playlist.count}) </span>
-      <span if.bind="!track._playlists.length">no playlists yet ..</span>
-    </div>
-    <hr />
-    <div style="width: 100%; display: flex; justify-content: center;">
-      <form submit.delegate="addToPlaylist()" class="mt-1">
-        <input id="playlist-input" class="form-control" style="width: 240px" value.bind="playListName"
-          placeholder="playlist" autocomplete="off" />
-      </form>
-    </div>
-    <hr />
-    <div class="active-only-container">
-      <span click.delegate="activeOnly = !activeOnly" style="cursor: pointer;">
-        <span show.bind="activeOnly">active only</span>
-        <span show.bind="!activeOnly" style="color: white;">all</span>
-      </span>
-      <input type="checkbox" id="active-only" class="custom-checkbox" checked.bind="activeOnly" />
-      <label for="active-only"></label>
-    </div>
-    <div
-      style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 12px; row-gap: 6px;">
-      <a href class="${playlist.active ? 'active' : 'unactive'}" repeat.for="playlist of playlists | filter: playListName"
-        click.delegate="addPlaylist(playlist.name)" show.bind="playlist.active || !activeOnly"><span
-          style="font-size: larger;">${playlist.name}</span>(${playlist.tracks.length})</a>
+    <div style="align-self: flex-end;display: flex;justify-content: center;align-items: center; padding-top: 48px; width: 100%;">
+      <a href style="color: red;cursor: pointer;" click.delegate="deleteTrack()">delete track</a>
     </div>
   </div>
 

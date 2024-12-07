@@ -158,4 +158,10 @@ export class SourceCodeDisplay {
     if (!this.track) return;
     this.getPlaylists();
   }
+
+  deleteTrack(){
+    if(!this.track) return;
+    this._eventAggregator.publish('delete-track', this.track);
+  }
+
 }

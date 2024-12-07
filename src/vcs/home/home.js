@@ -12,6 +12,7 @@ export class Home {
   @bindable track = null;
   @bindable page = 1;
   @bindable playlistId = null;
+  @bindable defaultPosition = 0;
   constructor(dialogService, eventAggregator, tracksManager, playlistsManager, toastsHandler) {
     this._dialogService = dialogService;
     this._tracksManager = tracksManager;
@@ -22,10 +23,16 @@ export class Home {
     this.size = 10;
     this.count = 0;
     this.total = 0;
+
+    this.defaultPositions = [0, 0.25, 0.4, 0.5, 0.6];
   }
 
   async attached() {
     await this.getTracks();
+
+    this.defaultPosition = await db.getDefaultPositionSetting();
+    console.info('this.defaultPosition', this.defaultPosition);
+
     const trackIdSetting = await db.getTrackIdSetting();
     console.info('trackIdSetting', trackIdSetting);
     if (trackIdSetting) {
@@ -43,7 +50,9 @@ export class Home {
     this.player = document.getElementById('player');
 
     this.player.onloadeddata = () => {
-      // this.player.currentTime = this.player.duration * 4 / 10;
+      if (this.defaultPosition !== 0) {
+        this.player.currentTime = this.player.duration * this.defaultPosition;
+      }
       this.player.play();
     };
 
@@ -132,6 +141,10 @@ export class Home {
       this.getTracks();
     });
 
+    this.deleteTrackEvent - this._eventAggregator.subscribe('delete-track', async track => {
+      await this.deleteTrack(track);
+    });
+
     this.getPlaylists();
   }
 
@@ -141,6 +154,7 @@ export class Home {
     this.playlistsChanged.dispose();
     this.mainGetTracksEvent.dispose();
     this.playlistChanged.dispose();
+    this.deleteTrackEvent.dispose();
   }
 
   getPlaylists() {
@@ -173,6 +187,10 @@ export class Home {
   }
 
   async playlistIdChanged() {
+
+    console.info('playlistIdChanged', this.playlistId);
+    this.defaultPosition = 0;
+
     this.page = 1;
     this.size = 10;
     this.count = 0;
@@ -279,6 +297,20 @@ export class Home {
       });
   }
 
+  nextEmptyTrack() {
+    return this._tracksManager.nextEmptyTrack(this.track.id, this.size)
+      .then(track => {
+        if (track) {
+          this.track = track;
+          this.jumpToTrack();
+        }
+        else this._toastsHandler.warning(`can not find any more <strong>empty tracks</strong>`);
+      })
+      .catch(error => {
+        console.error('nextEmptyTrack', error);
+      });
+  }
+
   playPause() {
     if (this.playing) this.player.pause();
     else this.player.play();
@@ -376,5 +408,10 @@ export class Home {
       if (response.wasCancelled) return;
     });
   }
+
+  async defaultPositionChanged() {
+    await db.setDefaultPositionSetting(this.defaultPosition);
+  }
+
 
 }

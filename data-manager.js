@@ -111,16 +111,20 @@ class DataManager {
             await fs.promises.mkdir(this.dataFolder);
         }
 
-        if(!fs.existsSync(this.settingsFile)){
+        if (!fs.existsSync(this.settingsFile)) {
             await fs.promises.writeFile(this.settingsFile, '');
         }
         const settingsContent = await fs.promises.readFile(this.settingsFile);
         try {
             this.settingsJson = JSON.parse(settingsContent);
-        } catch {}
-        if(!('trackId' in this.settingsJson)){
+        } catch { }
+        if (!('trackId' in this.settingsJson)) {
             this.settingsJson.trackId = null;
-            await fs.promises.writeFile(this.settingsFile, JSON.stringify(this.settingsJson, null, 3));
+            await this.writeSettings();
+        }
+        if (!('defaultPosition' in this.settingsJson)) {
+            this.settingsJson.defaultPosition = 0;
+            await this.writeSettings();
         }
 
         if (!fs.existsSync(this.filesFolder)) {
@@ -161,17 +165,31 @@ class DataManager {
         return this.getMissingFiles();
     }
 
-    getTrackIdSetting(){
+    async writeSettings(){
+        await fs.promises.writeFile(this.settingsFile, JSON.stringify(this.settingsJson, null, 3));
+    }
+
+    getTrackIdSetting() {
         return this.settingsJson.trackId;
     }
 
-    async setTrackIdSetting(trackId){
+    getDefaultPositionSetting(){
+        return this.settingsJson.defaultPosition;
+    }
+
+    async setTrackIdSetting(trackId) {
         this.settingsJson.trackId = trackId;
-        await fs.promises.writeFile(this.settingsFile, JSON.stringify(this.settingsJson, null, 3));
+        await this.writeSettings();
         return trackId;
     }
 
-    async getMissingFiles(){
+    async setDefaultPositionSetting(defaultPosition) {
+        this.settingsJson.defaultPosition = defaultPosition;
+        await this.writeSettings();
+        return defaultPosition;
+    }
+
+    async getMissingFiles() {
         let filter = { deleted: false };
         const tracks = this.tracks.chain().find(filter).simplesort('createdDate', true).data();
 
@@ -260,7 +278,7 @@ class DataManager {
         });
     }
 
-    getTrackPath(trackId){
+    getTrackPath(trackId) {
         const trackPath = path.join(this.filesFolder, `${trackId}.mp3`);
         return trackPath;
     }
@@ -276,7 +294,7 @@ class DataManager {
         return audioData;
     }
 
-    getTrackObject(trackId){
+    getTrackObject(trackId) {
         const track = this.tracks.findOne({ id: trackId });
         return track;
     }
@@ -355,25 +373,25 @@ class DataManager {
         return track;
     }
 
-    async editPlaylist(playlistId, playlistObj){
+    async editPlaylist(playlistId, playlistObj) {
         const playlist = await this.playlists.findOne({ id: playlistId });
-        if(!playlist) return null;
+        if (!playlist) return null;
 
         let hasToSave = false;
-        if(playlist.active !== playlistObj.active) {
-            playlist.active = playlistObj.active;            
+        if (playlist.active !== playlistObj.active) {
+            playlist.active = playlistObj.active;
             hasToSave = true;
         }
 
         const playlistName = playlistObj.name.toPlaylistName();
-        if(playlist.name !== playlistName){
+        if (playlist.name !== playlistName) {
             const tracks = this.tracks.find({ playlists: { '$contains': playlist.name } });
             if (tracks.length) {
                 for (let i = 0; i < tracks.length; i++) {
                     const track = tracks[i];
 
                     let plIndex = track.playlists.indexOf(playlist.name);
-                    if(plIndex < 0) continue;
+                    if (plIndex < 0) continue;
 
                     track.playlists[plIndex] = playlistName;
                     track.playlists = track.playlists.sort();
@@ -385,12 +403,12 @@ class DataManager {
             hasToSave = true;
         }
 
-        if(JSON.stringify(playlist.links) !== JSON.stringify(playlistObj.links)){
+        if (JSON.stringify(playlist.links) !== JSON.stringify(playlistObj.links)) {
             playlist.links = playlistObj.links;
             hasToSave = true;
         }
 
-        if(hasToSave){
+        if (hasToSave) {
             await this.playlists.update(playlist);
             await this.save();
         }
@@ -403,12 +421,12 @@ class DataManager {
             return null;
         }
 
-        if(track.playlists && track.playlists.length){
+        if (track.playlists && track.playlists.length) {
             const playlists = await this.playlists.find({ 'name': { '$in': track.playlists } });
             for (let index = 0; index < playlists.length; index++) {
                 const playlist = playlists[index];
                 const trackIndex = playlist.tracks.map(_ => _.id).indexOf(track.id);
-                if(trackIndex < 0) continue;
+                if (trackIndex < 0) continue;
                 playlist.tracks.splice(trackIndex, 1);
                 await this.playlists.update(playlist);
             }
@@ -538,7 +556,7 @@ class DataManager {
 
         const playlistFolderPath = path.join(this.playlistsFolder, playlist.name);
 
-        if(fs.existsSync(playlistFolderPath)){
+        if (fs.existsSync(playlistFolderPath)) {
             await fs.promises.rmdir(playlistFolderPath, { recursive: true });
         }
         await fs.promises.mkdir(playlistFolderPath);
@@ -613,30 +631,44 @@ class DataManager {
         return this.executeYtDlp(['-U']);
     }
 
-    async downloadTrack(trackId){
+    async downloadTrack(trackId) {
         const commandString = '--write-info-json -f bestaudio --audio-quality 0 --no-part --audio-format mp3 --download-archive downloaded.txt -ciwx -o %(id)s.%(ext)s -v';
         let commandArray = commandString.split(' ');
         commandArray.push(`https://www.youtube.com/watch?v=${trackId}`);
         return this.executeYtDlp(commandArray);
     }
 
-    async dummy() {
-        // let playlists = await this.playlists.find({});
+    async nextEmptyTrack() {
+        const tracks = this.tracks
+            .chain()
+            .find({
+                playlists: { '$eq': [] },
+                deleted: false
+            })
+            .simplesort('createdDate', true)
+            .data();
 
-        // for (let index = 0; index < playlists.length; index++) {
-        //     const playlist = playlists[index];
-        //     playlist.links = [];
-
-        //     await this.playlists.update(playlist);
-        // }
-
-        // this.save();
-
-        // playlists = await this.playlists.find({});
-
-        // console.info('playlists', playlists);
+        if (tracks.length) return tracks[0];
+        return null;
     }
 
+    async dummy() {
+        const tracks = await this.tracks.find({
+            playlists: { '$contains': 'soft' },
+            deleted: true
+        });
+
+        const result = tracks.map(_ => {
+            return {
+                id: _.id,
+                title: _.title,
+                playlists: _.playlists
+            };
+        });
+
+        console.info('result', result);
+
+    }
 
 }
 

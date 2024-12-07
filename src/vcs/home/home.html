@@ -52,6 +52,7 @@
                     </td>
                     <td class="text-center">${t.duration | durationFormat}</td>
                     <td class="text-center">${t.uploadDate | momentFormat}</td>
+                    <td class="text-center">${t.channel}</td>
                     <!-- <td class="text-center">
                       <a href target="_blank" click.delegate="openTrackInfo(t)">info</a>
                     </td> -->
@@ -115,6 +116,10 @@
       <div class="mt-2 text-center">
         <a href click.delegate="downloadPlaylist()" show.bind="playlistId">download playlist</a>
         <a href click.delegate="jumpToTrack()" show.bind="!playlistId">jump to current track</a>
+        <select value.bind="defaultPosition">
+          <option repeat.for="dp of defaultPositions" model.bind="dp">${dp * 100}%</option>
+        </select>
+        <a href click.delegate="nextEmptyTrack()" show.bind="!playlistId">next empty track</a>
       </div>
     </div>
   </div>

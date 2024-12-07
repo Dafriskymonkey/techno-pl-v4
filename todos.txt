@@ -1,8 +1,13 @@
 + sorting a playlist
-+ delete playlist
 + check data integrity at launch (missing mp3, data ..)
++ restore deleted tracks
 
  //rruthology UCw59OmZvwnXB5ivCbBNDbmw
+ //https://www.youtube.com/@CLR-official
+ //https://www.youtube.com/@Acidalia
+
+//ERROR: Interrupted by user
+ //[download] Finished downloading playlist: CLR
 
 //yt-dlp --match-filter "duration < 900" --write-info-json --dateafter 20210101 -f bestaudio --audio-quality 0 --no-part --audio-format mp3 --download-archive downloaded.txt -ciwx -o "%(id)s.%(ext)s" -v https://www.youtube.com/channel/UC6qQOTx9LuKMC5p2dbjmSRg
 //yt-dlp --match-filter "duration < 900" --write-info-json --dateafter 20210101 -f bestaudio --audio-quality 0 --no-part --audio-format mp3 --download-archive downloaded.txt -ciwx -o "%(id)s.%(ext)s" -v https://www.youtube.com/@HATE

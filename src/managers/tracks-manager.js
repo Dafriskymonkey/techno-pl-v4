@@ -19,6 +19,11 @@ export class TracksManager {
     return page;
   }
 
+  async nextEmptyTrack() {
+    const track = await db.nextEmptyTrack();
+    return track;
+  }
+
   async deleteTrack(trackId) {
     const track = await db.deleteTrack(trackId);
     return track;

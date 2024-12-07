@@ -151,6 +151,12 @@ app.whenReady().then(async () => {
     return page;
   });
 
+  ipcMain.handle('db:next-empty-track', async (event) => {
+    console.info('db:next-empty-track');
+    const track = await dataManager.nextEmptyTrack();
+    return track;
+  });
+
   ipcMain.handle('db:save-playlist', async (event, trackId, playlist, isDelete) => {
     console.info('db:save-playlist', trackId, playlist, isDelete);
     const result = await dataManager.savePlaylist(trackId, playlist, isDelete);
@@ -212,6 +218,17 @@ app.whenReady().then(async () => {
   ipcMain.handle('db:set-trackId-setting', async (event, trackId) => {
     console.info('db:set-trackId-setting');
     return await dataManager.setTrackIdSetting(trackId);
+  });
+
+  ipcMain.handle('db:get-default-position-setting', async () => {
+    console.info('db:get-default-position-setting');
+    const defaultPosition = await dataManager.getDefaultPositionSetting();
+    return defaultPosition;
+  });
+
+  ipcMain.handle('db:set-default-position-setting', async (event, defaultPosition) => {
+    console.info('db:set-default-position-setting');
+    return await dataManager.setDefaultPositionSetting(defaultPosition);
   });
 
   ipcMain.handle('db:get-track-object', async (event, trackId) => {
