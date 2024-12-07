@@ -50,9 +50,7 @@ export class Home {
     this.player = document.getElementById('player');
 
     this.player.onloadeddata = () => {
-      if (this.defaultPosition !== 0) {
-        this.player.currentTime = this.player.duration * this.defaultPosition;
-      }
+      this.player.currentTime = this.player.duration * this.defaultPosition;
       this.player.play();
     };
 
@@ -189,7 +187,13 @@ export class Home {
   async playlistIdChanged() {
 
     console.info('playlistIdChanged', this.playlistId);
-    this.defaultPosition = 0;
+
+    if(this.playlistId){
+      this.defaultPosition = 0;
+    }
+    else{
+      this.defaultPosition = await db.getDefaultPositionSetting();
+    }
 
     this.page = 1;
     this.size = 10;
@@ -410,6 +414,7 @@ export class Home {
   }
 
   async defaultPositionChanged() {
+    if(this.playlistId) return;
     await db.setDefaultPositionSetting(this.defaultPosition);
   }
 
